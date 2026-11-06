@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -52,5 +52,83 @@ describe("qa doctor", () => {
     const r = qa(["doctor", "--config", "/nonexistent/qa.config.json"]);
     expect(r.code).toBe(2);
     expect(r.err).toContain("/nonexistent/qa.config.json");
+  });
+});
+
+const KEYS = { OPENAI_API_KEY: "sk-test-1234567890", E2B_API_KEY: "e2b-test-1234567890" };
+const args = (cmd: string, file: string, runId = "r1") => [cmd, "--config", file, "--feature", "HEL-1", "--run-id", runId];
+
+describe("stage commands", () => {
+  it("fail at step 0 naming the missing secret, before looking at inputs", () => {
+    const { file } = tmpConfig();
+    const r = qa(args("design", file));
+    expect(r.code).toBe(2);
+    expect(r.err).toContain("OPENAI_API_KEY");
+  });
+
+  it("design exits 2 naming acceptance.json when the input artifact is missing", () => {
+    const { dir, file } = tmpConfig();
+    mkdirSync(path.join(dir, "runs/HEL-1/runs/r1"), { recursive: true });
+    const r = qa(args("design", file), KEYS);
+    expect(r.code).toBe(2);
+    expect(r.err).toContain("acceptance.json");
+  });
+
+  it("design exits 2 naming the run dir when it does not exist", () => {
+    const { file } = tmpConfig();
+    const r = qa(args("design", file, "nope"), KEYS);
+    expect(r.code).toBe(2);
+    expect(r.err).toContain("nope");
+  });
+
+  it("each stage checks its own input: review->cases.json, run->cases.reviewed.json, report->results/", () => {
+    const { dir, file } = tmpConfig();
+    mkdirSync(path.join(dir, "runs/HEL-1/runs/r1"), { recursive: true });
+    const want: Record<string, string> = { review: "cases.json", run: "cases.reviewed.json", report: "results" };
+    for (const [cmd, art] of Object.entries(want)) {
+      const r = qa(args(cmd, file), KEYS);
+      expect(r.code, cmd).toBe(2);
+      expect(r.err, cmd).toContain(art);
+    }
+  });
+
+  it("design with its input present reaches the stage body: exit 1 'not implemented'", () => {
+    const { dir, file } = tmpConfig();
+    const rd = path.join(dir, "runs/HEL-1/runs/r1");
+    mkdirSync(rd, { recursive: true });
+    writeFileSync(path.join(rd, "acceptance.json"), "{}");
+    const r = qa(args("design", file), KEYS);
+    expect(r.code).toBe(1);
+    expect(r.err).toContain("design not implemented");
+  });
+
+  it("extract creates the run dir, then refuses to reuse it without --force", () => {
+    const { dir, file } = tmpConfig();
+    const first = qa(args("extract", file), KEYS);
+    expect(first.code).toBe(1);
+    expect(first.err).toContain("extract not implemented");
+    expect(existsSync(path.join(dir, "runs/HEL-1/runs/r1"))).toBe(true);
+    expect(qa(args("extract", file), KEYS).code).toBe(2);
+    expect(qa([...args("extract", file), "--force"], KEYS).code).toBe(1);
+  });
+
+  it("requires --feature and --run-id", () => {
+    const { file } = tmpConfig();
+    const r = qa(["extract", "--config", file], KEYS);
+    expect(r.code).toBe(2);
+    expect(r.err).toMatch(/--feature/);
+  });
+
+  it("all stops at the first stage that returns non-zero", () => {
+    const { file } = tmpConfig();
+    const r = qa(args("all", file), KEYS);
+    expect(r.code).toBe(1);
+    expect(r.err).toContain("extract not implemented");
+    expect(r.err).not.toContain("design not implemented");
+  });
+
+  it("never reads stdin: closed stdin cannot hang a command", () => {
+    const { file } = tmpConfig();
+    expect(qa(args("extract", file, "stdin-check"), KEYS).code).not.toBeNull();
   });
 });
