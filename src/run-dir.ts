@@ -10,6 +10,7 @@ import { Env } from "./contracts/env";
 import { ExtractReport } from "./contracts/extract-report";
 import { GeneratorsFile } from "./contracts/generators";
 import { CaseResult } from "./contracts/result";
+import { SourcesFile } from "./contracts/sources";
 
 const SEGMENT = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,159}$/;
 
@@ -30,6 +31,7 @@ const REGISTRY: Record<string, ZodType> = {
   "change-model.json": ChangeModel,
   "env.json": Env,
   "extract-report.json": ExtractReport,
+  "sources.json": SourcesFile,
   "cases.json": CasesFile,
   "generators.json": GeneratorsFile,
   "case-review.json": CaseReviewFile,

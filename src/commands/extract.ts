@@ -81,6 +81,7 @@ export async function runExtract(ctx: CommandContext, deps: ExtractDeps): Promis
     });
     const force = { force: ctx.force };
     writeArtifact(ctx.runDir, "extract-report.json", result.report, force);
+    writeArtifact(ctx.runDir, "sources.json", { sources }, force);
     if (result.acceptance.atoms.length === 0) {
       const why = result.report.dropped.map((d) => `- ${d.reason}: ${d.anchor.slice(0, 80)}`).join("\n");
       console.error(`extract: no acceptance atom survived verification${why ? `\n${why}` : " (the sources stated none)"}`);

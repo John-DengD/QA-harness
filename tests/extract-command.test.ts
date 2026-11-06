@@ -40,7 +40,8 @@ describe("runExtract", () => {
     const { c, dir } = ctx({});
     c.args = { ticketFile: ticketFile(dir) };
     expect(await runExtract(c, deps(good))).toBe(0);
-    expect(files(c.runDir)).toEqual(["acceptance.json", "change-model.json", "env.json", "extract-report.json"]);
+    expect(files(c.runDir)).toEqual(["acceptance.json", "change-model.json", "env.json", "extract-report.json", "sources.json"]);
+    expect(JSON.parse(readFileSync(path.join(c.runDir, "sources.json"), "utf8")).sources[0].text).toContain("The banner disappears after 5 seconds.");
     expect(JSON.parse(readFileSync(path.join(c.runDir, "acceptance.json"), "utf8")).atoms[0].id).toBe("A01");
     expect(JSON.parse(readFileSync(path.join(c.runDir, "env.json"), "utf8"))).toMatchObject({ kind: "staging", baseUrl: "https://staging.example.test" });
   });
@@ -50,7 +51,7 @@ describe("runExtract", () => {
     c.args = { ticketFile: ticketFile(dir) };
     const bad = transport((refs) => ({ ...GOOD, atoms: [{ text: "x", sourceRef: refs[0], anchor: "not in the ticket" }] }));
     expect(await runExtract(c, deps(bad))).toBe(2);
-    expect(files(c.runDir)).toEqual(["extract-report.json"]);
+    expect(files(c.runDir)).toEqual(["extract-report.json", "sources.json"]);
   });
 
   it("works with LINEAR_API_KEY unset for --ticket-file, and names it for --ticket", async () => {
