@@ -273,3 +273,13 @@
 - **范围说明:** 本节只管 `extract` 要用的环境解析。账号与 fixture 的创建方式、清理方式(现在写在 executor 代码里,如 `campaign-teardown`)也属于外部约定,迁出 executor 的工作留给 `run` 阶段的计划。
 - **地址放环境变量(用户 2026-11-06 补充):** staging 等地址用 hy_ui_autotest 已有的变量名,`E2E_BASE_URL`(可选 `E2E_API_URL`、`E2E_CONTROL_URL`),从进程环境或 `<configDir>/.env.local`、`<configDir>/qa-env/.env.local`(executor 读的同一个文件)读取,代码里不设默认值。PR sandbox 的地址仍然只从 PR 评论里读。
 - **对第 6 节的修正:** 之前草稿里设想的配置项 `staging.baseUrl` 取消。
+
+## 14. 实现状态与偏离(2026-11-06)
+
+五条命令和 `qa all`(含 design/review 的修订回路,最多两次)已实现并有不联网的测试;使用说明和已知限制见 `README.md`。相对本文档的偏离:
+
+- `qa extract` 额外写 `sources.json`(原文快照,供 design 和 review 核对 anchor)和 `extract-report.json`(落盘前被剔除的原子及原因)。
+- 现有脚本匹配用 `runbook/script-bindings.json` 的精确标题绑定,没有接入 `action:select`;缺省走脚本生成。
+- `qa-sandbox.ts`(建沙箱、按 case 录像、取页面)由 harness 自带,放在 `scripts/executor-extra/`,迁移脚本复制进 `executor/scripts/`;原来这部分在没有迁移的 Computer Use 脚本里。
+- 允许的副作用以 `runbook/authorized-side-effects.json` 为准:`disposable-account`、`campaign-draft`。第 9 节写的"已预先授权的钱包充值"与 `qa-environment.md` 第 6 节矛盾(沙箱到不了支付页),以后者为准,充值类 case 记 Blocked。
+- 沙箱解析的规则放在 `runbook/environments.json`,地址放环境变量 `E2E_BASE_URL`(第 13 节)。
