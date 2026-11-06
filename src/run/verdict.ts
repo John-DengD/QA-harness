@@ -17,7 +17,8 @@ function collectResults(node: any, out: PwResult[]): void {
 // eslint-disable-next-line no-control-regex
 const stripAnsi = (s: string) => s.replace(/\u001b\[[0-9;]*m/g, "");
 const ASSERTION = /expect\([^)]*\)\.(?:not\.)?to[A-Z]\w*/;
-const NOT_ASSERTION = /Test timeout of|Target (?:page|context|browser)[^\n]* (?:has been )?closed|locator\.\w+: Timeout/;
+// Selector drift is an automation failure even when it surfaces through an expect(): the element was not found at all.
+const NOT_ASSERTION = /Test timeout of|Target (?:page|context|browser)[^\n]* (?:has been )?closed|locator\.\w+: Timeout|<element\(s\) not found>|resolved to 0 elements/;
 
 /** Assertion failure = a failed expect(...).toXxx matcher. Everything else is an automation failure (spec §4.10). */
 export function classifyPlaywrightReport(report: unknown, exitCode: number, timedOut: boolean): Classification {
@@ -39,7 +40,8 @@ export function classifyPlaywrightReport(report: unknown, exitCode: number, time
 }
 
 export function expectedSourceKind(sourceRef: string, runbook: { modules: ModuleMeta[] }): "authoritative" | "weak" {
-  if (/^(linear|file|pr|goal):/.test(sourceRef)) return "authoritative";
+  // goal: is an instruction, not an Expected source (spec §4.14), so it is weak.
+  if (/^(linear|file|pr):/.test(sourceRef)) return "authoritative";
   const m = /^runbook:(.+)$/.exec(sourceRef);
   if (m) {
     const mod = runbook.modules.find((x) => x.path === m[1]);

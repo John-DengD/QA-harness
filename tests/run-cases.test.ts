@@ -6,6 +6,7 @@ import { runCases } from "../src/run/run-cases";
 import type { PlaywrightRunner, RunDeps, SandboxDriver } from "../src/run/types";
 import type { Runbook } from "../src/runbook";
 
+const GOOD_CODE = `import { test, expect } from "./fixtures";\ntest("x", async ({ page }) => { await expect(page).toHaveURL(/x/); });`;
 const SECRET = "e2b_secret_value_123456";
 const mkCase = (id: string, title: string, over: Record<string, unknown> = {}) => ({
   id, title, generator: "G1", type: "happy", expected: { text: "e", sourceRef: "linear:DEV-1", anchor: "a" },
@@ -32,7 +33,7 @@ function fakes(over: { report?: unknown; bytes?: number; stopThrows?: boolean; p
     async run(o) { log.push(`pw:${o.specPath}`); if (over.pwThrows) throw new Error("spawn failed"); return { exitCode: over.report === FAIL ? 1 : 0, stdout: over.stdout ?? "", stderr: "", reportJson: over.report ?? PASS, timedOut: false }; },
   };
   const deps: RunDeps = { sandbox, playwright, registry: { async register() { log.push("register"); } }, validate: async () => ({ ok: true, output: "" }) };
-  const transport: LlmTransport = { async complete() { log.push("llm"); return JSON.stringify({ code: over.gen ?? "test('x')", sideEffects: [] }); } };
+  const transport: LlmTransport = { async complete() { log.push("llm"); return JSON.stringify({ code: over.gen ?? GOOD_CODE, sideEffects: [] }); } };
   return { log, deps, transport };
 }
 const dirs = () => { const d = mkdtempSync(path.join(tmpdir(), "qa-run-")); return d; };
@@ -115,7 +116,7 @@ describe("runCases", () => {
 
   it("a generated script with an unauthorised side effect is Blocked and never executed", async () => {
     const runDir = dirs(); const f = fakes();
-    const transport: LlmTransport = { async complete() { return JSON.stringify({ code: "test('x')", sideEffects: ["submit-payment"] }); } };
+    const transport: LlmTransport = { async complete() { return JSON.stringify({ code: GOOD_CODE, sideEffects: ["submit-payment"] }); } };
     const r = await runCases({ ...common(runDir), cases: [mkCase("C01", "No script")], runbook: runbook(), deps: f.deps, transport });
     expect(result(runDir, "C01").verdict).toBe("Blocked");
     expect(result(runDir, "C01").notes).toContain("submit-payment");

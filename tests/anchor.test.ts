@@ -15,7 +15,7 @@ describe("anchorInSource", () => {
   });
   it("ignores list bullets and heading marks", () => {
     expect(anchorInSource(source, "密码错误时 显示 Invalid password")).toBe(true);
-    expect(anchorInSource(source, "登录页")).toBe(true);
+    expect(anchorInSource(source, "密码错误时 显示 Invalid")).toBe(true);
   });
   it("does not find a paraphrase", () => {
     expect(anchorInSource(source, "A banner is shown once the changes are saved")).toBe(false);
@@ -36,5 +36,17 @@ describe("anchorInSource", () => {
 describe("normalizeForAnchor", () => {
   it("collapses whitespace and strips marks", () => {
     expect(normalizeForAnchor("  **a**\n\n  `b`  ")).toBe("a b");
+  });
+});
+
+describe("anchor minimum length", () => {
+  it("rejects a one-word or very short anchor even if the source contains it", () => {
+    expect(anchorInSource(source, "banner")).toBe(false);
+    expect(anchorInSource(source, "after")).toBe(false);
+    expect(anchorInSource(source, "登录页")).toBe(false);
+  });
+  it("accepts a short but meaningful CJK sentence and a normal English sentence", () => {
+    expect(anchorInSource("用户必须使用邮箱登录", "必须使用邮箱登录")).toBe(true);
+    expect(anchorInSource(source, "It disappears after 5 seconds.")).toBe(true);
   });
 });

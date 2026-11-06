@@ -40,7 +40,7 @@ function transport(sourceRef: () => string): { t: LlmTransport; seen: string[] }
           return JSON.stringify({ entries: ids.map((caseId) => ({ caseId, verdict: "keep", reason: "in scope and distinct" })) });
         }
         case "generate_playwright_spec":
-          return JSON.stringify({ code: "import { test, expect } from './fixtures'; test('x', async ({ page }) => {});", sideEffects: [] });
+          return JSON.stringify({ code: "import { test, expect } from './fixtures';\ntest('x', async ({ page }) => { await expect(page).toHaveURL(/x/); });", sideEffects: [] });
         default:
           throw new Error(`unexpected LLM call ${req.schemaName}`);
       }

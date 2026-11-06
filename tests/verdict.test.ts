@@ -27,6 +27,14 @@ describe("classifyPlaywrightReport", () => {
   it("a missing report with exit 0 is still not a pass", () => {
     expect(classifyPlaywrightReport(null, 0, false)).toMatchObject({ outcome: "failed", kind: "automation" });
   });
+  it("an expect that fails only because the element was not found is selector drift (automation)", () => {
+    const m = "Error: expect(locator).toBeVisible() failed\n\nLocator: getByRole('button', { name: 'Save' })\nExpected: visible\nReceived: <element(s) not found>";
+    expect(classifyPlaywrightReport(report("failed", m), 1, false)).toMatchObject({ kind: "automation" });
+    expect(classifyPlaywrightReport(report("failed", "Error: expect(locator).toHaveText(expected) failed\nLocator: locator('h1') resolved to 0 elements"), 1, false)).toMatchObject({ kind: "automation" });
+  });
+  it("a value mismatch on a found element stays an assertion failure", () => {
+    expect(classifyPlaywrightReport(report("failed", "Error: expect(locator).toHaveText(expected) failed\nExpected: Saved\nReceived: Saving"), 1, false)).toMatchObject({ kind: "assertion" });
+  });
   it("one failed test among passed ones fails the case", () => {
     const r = { suites: [{ specs: [{ tests: [{ results: [{ status: "passed" }] }, { results: [{ status: "failed", error: { message: "expect(page).toHaveURL(/x/) failed" } }] }] }] }] };
     expect(classifyPlaywrightReport(r, 1, false)).toMatchObject({ kind: "assertion" });
@@ -35,7 +43,8 @@ describe("classifyPlaywrightReport", () => {
 
 describe("expectedSourceKind", () => {
   it("ticket, file, pr and goal refs are authoritative", () => {
-    for (const ref of ["linear:DEV-1", "file:/t.md", "pr:https://x/pull/1#description", "goal:text"]) expect(expectedSourceKind(ref, { modules })).toBe("authoritative");
+    for (const ref of ["linear:DEV-1", "file:/t.md", "pr:https://x/pull/1#description"]) expect(expectedSourceKind(ref, { modules })).toBe("authoritative");
+    expect(expectedSourceKind("goal:text", { modules })).toBe("weak"); // the goal is an instruction, not an Expected source (spec §4.14)
   });
   it("a runbook ref is authoritative only for an active module", () => {
     expect(expectedSourceKind("runbook:QA-models/hellyeah/core-journeys.md", { modules })).toBe("weak");

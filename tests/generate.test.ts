@@ -2,7 +2,8 @@ import type { LlmRequest, LlmTransport } from "../src/llm/structured";
 import { generateScript } from "../src/run/generate";
 
 const kase = { id: "C01", title: "Banner after save", generator: "G1", type: "happy", expected: { text: "A banner appears after saving", sourceRef: "s", anchor: "Saving shows a banner" }, preconditions: ["signed in"], risk: "r", testability: { state: "ready" } } as never;
-const t = (code = "import {test} from '@playwright/test'; test('x', async () => {});", sideEffects: string[] = []) => {
+const OK_CODE = `import { test, expect } from "./fixtures";\ntest("x", async ({ page }) => { await expect(page).toHaveURL(/x/); });`;
+const t = (code = OK_CODE, sideEffects: string[] = []) => {
   const seen: LlmRequest[] = [];
   const tr: LlmTransport = { async complete(r) { seen.push(r); return JSON.stringify({ code, sideEffects }); } };
   return { tr, seen };
@@ -44,5 +45,38 @@ describe("generateScript", () => {
     expect(seen[0]!.user.length).toBeLessThan(70000);
     expect(seen[0]!.system).toMatch(/sideEffects/);
     expect(seen[0]!.system).toContain("./fixtures");
+  });
+});
+
+describe("static gate on generated code", () => {
+  const run = async (code: string) => {
+    const { tr, seen } = t(code);
+    let validated = 0;
+    const r = await generateScript({ ...base, maxRetries: 0, transport: tr, domSnapshot: "d", validate: async () => { validated++; return { ok: true, output: "" }; } });
+    return { r, seen, validated };
+  };
+  it("rejects code that imports @playwright/test directly (it would bypass the sandbox browser)", async () => {
+    const x = await run(`import { test, expect } from "@playwright/test";\ntest("x", async ({ page }) => { await expect(page).toHaveURL(/x/); });`);
+    expect(x.r).toMatchObject({ ok: false });
+    expect((x.r as { reason: string }).reason).toMatch(/fixtures/);
+    expect(x.validated).toBe(0);
+  });
+  it("rejects code with no assertion, with zero or several tests, or with skip/fixme/only", async () => {
+    for (const code of [
+      `import { test } from "./fixtures";\ntest("x", async ({ page }) => { await page.goto("/"); });`,
+      `import { test, expect } from "./fixtures";\nexpect(1).toBe(1);`,
+      `import { test, expect } from "./fixtures";\ntest("a", async () => { expect(1).toBe(1); });\ntest("b", async () => { expect(1).toBe(1); });`,
+      `import { test, expect } from "./fixtures";\ntest.skip("a", async () => { expect(1).toBe(1); });`,
+    ]) {
+      const x = await run(code);
+      expect(x.r, code).toMatchObject({ ok: false });
+      expect(x.validated, code).toBe(0);
+    }
+  });
+  it("feeds the gate message back to the model like a type error", async () => {
+    const { tr, seen } = t(`import { test } from "./fixtures";\ntest("x", async () => {});`);
+    await generateScript({ ...base, maxRetries: 1, transport: tr, domSnapshot: "d", validate: async () => ({ ok: true, output: "" }) });
+    expect(seen).toHaveLength(2);
+    expect(seen[1]!.user).toMatch(/expect\(/);
   });
 });

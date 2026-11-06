@@ -33,6 +33,17 @@ function userPrompt(c: Case, baseUrl: string, dom: string, lastFailure: string |
   ].join("\n\n");
 }
 
+/** Cheap structural checks that keep a generated script from passing without touching the sandbox. */
+export function staticGate(code: string): string | null {
+  if (!/from\s+["']\.\/fixtures["']/.test(code)) return 'the script must import { test, expect } from "./fixtures"';
+  if (/from\s+["']@playwright\/test["']/.test(code)) return 'never import from "@playwright/test" directly; use "./fixtures" (it connects to the sandbox browser)';
+  if (!/\bexpect\s*\(/.test(code)) return "the script contains no expect(...) assertion";
+  const tests = code.match(/(^|[^.\w])test\s*\(/g) ?? [];
+  if (tests.length !== 1) return `the script must contain exactly one test(...), found ${tests.length}`;
+  if (/\btest\.(skip|fixme|only|fail)\b/.test(code)) return "test.skip / fixme / only / fail are not allowed";
+  return null;
+}
+
 export async function generateScript(opts: {
   transport: LlmTransport;
   case: Case;
@@ -56,6 +67,11 @@ export async function generateScript(opts: {
       });
     } catch (e) {
       lastFailure = (e as Error).message;
+      continue;
+    }
+    const gate = staticGate(out.code);
+    if (gate) {
+      lastFailure = `static check failed: ${gate}`;
       continue;
     }
     const specPath = await opts.writeSpec(out.code);

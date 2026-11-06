@@ -13,8 +13,14 @@ export function normalizeForAnchor(text: string): string {
     .trim();
 }
 
+const CJK = /[\u3400-\u9fff\uf900-\ufaff]/;
+/** Short anchors match almost any source; require a meaningful fragment (10+ characters, or 6+ when CJK). */
+export function anchorLongEnough(normalized: string): boolean {
+  return normalized.length >= (CJK.test(normalized) ? 6 : 10);
+}
+
 export function anchorInSource(source: string, anchor: string): boolean {
   const a = normalizeForAnchor(anchor);
-  if (a === "") return false;
+  if (a === "" || !anchorLongEnough(a)) return false;
   return normalizeForAnchor(source).includes(a);
 }
