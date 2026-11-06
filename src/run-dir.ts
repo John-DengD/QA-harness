@@ -62,3 +62,11 @@ export function writeArtifact(runDir: string, name: string, data: unknown, opts:
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(file, JSON.stringify(parsed, null, 2) + "\n");
 }
+
+/** Writes a non-JSON artifact (e.g. report.md), refusing to overwrite without force. */
+export function writeFileGuarded(runDir: string, name: string, text: string, opts: { force?: boolean } = {}): void {
+  const file = path.join(runDir, name);
+  if (existsSync(file) && !opts.force) throw new ConfigError(`artifact already exists (use --force to replace): ${file}`);
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeFileSync(file, text);
+}
