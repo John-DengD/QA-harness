@@ -60,13 +60,14 @@ export const runStage: Stage = {
   run: (ctx) => {
     const executorRoot = ctx.config.executor.root;
     const exec = realExec;
+    const qaRoot = ctx.config.runRoot;
     return runRun(ctx, {
       transport: makeOpenAiTransport({ apiKey: ctx.env.OPENAI_API_KEY!, baseUrl: ctx.config.llm.baseUrl, model: ctx.config.llm.model }),
       runDeps: {
-        sandbox: makeSandboxDriver({ executorRoot, env: ctx.env, exec }),
-        playwright: makePlaywrightRunner({ executorRoot, env: ctx.env, exec }),
-        registry: makeRegistry({ executorRoot, qaRoot: ctx.config.runRoot, env: ctx.env, exec }),
-        validate: makeScriptValidator({ executorRoot, env: ctx.env, exec }),
+        sandbox: makeSandboxDriver({ executorRoot, qaRoot, env: ctx.env, exec }),
+        playwright: makePlaywrightRunner({ executorRoot, qaRoot, env: ctx.env, exec }),
+        registry: makeRegistry({ executorRoot, qaRoot, env: ctx.env, exec }),
+        validate: makeScriptValidator({ executorRoot, qaRoot, env: ctx.env, exec }),
       },
     });
   },

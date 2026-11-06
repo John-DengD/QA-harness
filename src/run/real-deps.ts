@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { Env } from "../contracts/env";
+import { ExternalError } from "../errors";
 import { makeRedactor } from "../redact";
 import type { ExecLike } from "../sources/types";
 import type { ScriptValidator } from "./generate";
@@ -8,6 +9,7 @@ import type { PlaywrightRunner, RunRegistry, SandboxDriver } from "./types";
 
 const SECRETISH = /KEY|SECRET|TOKEN|PASSWORD/i;
 const secretsOf = (env: NodeJS.ProcessEnv) => Object.entries(env).filter(([k, v]) => SECRETISH.test(k) && v).map(([, v]) => v!);
+const withQaRoot = (env: NodeJS.ProcessEnv, qaRoot: string): NodeJS.ProcessEnv => ({ ...env, QA_ROOT: qaRoot });
 const ident = (s: string) => s.replace(/[^A-Za-z0-9._-]/g, "-").replace(/^[^A-Za-z0-9]+/, "x").slice(0, 120) || "x";
 
 function lastJson(stdout: string): any {
@@ -27,9 +29,9 @@ function failure(what: string, r: { code: number; stdout: string; stderr: string
   return new Error(`${what} failed (exit ${r.code}): ${clean((r.stderr || r.stdout).trim()).slice(0, 800)}`);
 }
 
-export function makeSandboxDriver(opts: { executorRoot: string; env: NodeJS.ProcessEnv; exec: ExecLike }): SandboxDriver {
+export function makeSandboxDriver(opts: { executorRoot: string; qaRoot: string; env: NodeJS.ProcessEnv; exec: ExecLike }): SandboxDriver {
   const run = async (what: string, args: string[]) => {
-    const r = await opts.exec("pnpm", ["exec", "tsx", "scripts/qa-sandbox.ts", ...args], { cwd: opts.executorRoot, env: opts.env });
+    const r = await opts.exec("pnpm", ["exec", "tsx", "scripts/qa-sandbox.ts", ...args], { cwd: opts.executorRoot, env: withQaRoot(opts.env, opts.qaRoot) });
     if (r.code !== 0) throw failure(`sandbox ${what}`, r, opts.env);
     return lastJson(r.stdout);
   };
@@ -65,10 +67,12 @@ export function ensureGeneratedHarness(dir: string, executorRoot: string): void 
     const f = path.join(dir, name);
     if (!existsSync(f)) writeFileSync(f, text);
   };
+  // ESM like the executor, whatever package the run directory happens to sit in.
+  write("package.json", JSON.stringify({ type: "module" }));
   write("fixtures.ts", `export { test, expect } from ${JSON.stringify(path.join(executorRoot, "src", "fixtures"))};\n`);
   write(
     "playwright.config.ts",
-    `import base from ${JSON.stringify(path.join(executorRoot, "playwright.config"))};\nexport default { ...base, testDir: __dirname };\n`,
+    `import base from ${JSON.stringify(path.join(executorRoot, "playwright.config"))};\nexport default { ...base, testDir: "." };\n`,
   );
   write(
     "tsconfig.json",
@@ -78,7 +82,7 @@ export function ensureGeneratedHarness(dir: string, executorRoot: string): void 
 
 const outsideExecutor = (spec: string, executorRoot: string) => path.isAbsolute(spec) && !path.resolve(spec).startsWith(path.resolve(executorRoot) + path.sep);
 
-export function makePlaywrightRunner(opts: { executorRoot: string; env: NodeJS.ProcessEnv; exec: ExecLike }): PlaywrightRunner {
+export function makePlaywrightRunner(opts: { executorRoot: string; qaRoot: string; env: NodeJS.ProcessEnv; exec: ExecLike }): PlaywrightRunner {
   return {
     async run({ sandboxId, specPath, grep, outputDir, timeoutMs }) {
       const args = ["exec", "tsx", "scripts/run-e2b-playwright.ts", sandboxId];
@@ -95,7 +99,7 @@ export function makePlaywrightRunner(opts: { executorRoot: string; env: NodeJS.P
       const r = await opts.exec("pnpm", args, {
         cwd: opts.executorRoot,
         timeoutMs,
-        env: { ...opts.env, E2E_TEST_OUTPUT_DIR: outputDir, PLAYWRIGHT_JSON_OUTPUT_NAME: reportPath },
+        env: { ...withQaRoot(opts.env, opts.qaRoot), E2E_TEST_OUTPUT_DIR: outputDir, PLAYWRIGHT_JSON_OUTPUT_NAME: reportPath },
       });
       let reportJson: unknown | null = null;
       try {
@@ -109,36 +113,53 @@ export function makePlaywrightRunner(opts: { executorRoot: string; env: NodeJS.P
 }
 
 export function makeRegistry(opts: { executorRoot: string; qaRoot: string; env: NodeJS.ProcessEnv; exec: ExecLike }): RunRegistry {
+  const env = withQaRoot(opts.env, opts.qaRoot);
   return {
-    async register({ runId, feature, env, taskModelRef }: { runDir: string; runId: string; feature: string; env: Env; taskModelRef: string }) {
+    async register({ runId, feature, env: runEnv, taskModelRef }: { runDir: string; runId: string; feature: string; env: Env; taskModelRef: string }) {
       const f = ident(feature);
       const id = ident(runId);
       const runRoot = `${f}/runs/${id}`;
+      // A re-run of the same run id reuses its registration (the executor creates it only once).
+      const existing = await opts.exec("pnpm", ["exec", "tsx", "scripts/loop-state.ts", "inspect", "--qa-root", opts.qaRoot, "--run-id", id], { cwd: opts.executorRoot, env });
+      if (existing.code === 0) {
+        try {
+          if (lastJson(existing.stdout).runRoot === runRoot) return;
+        } catch {
+          /* fall through to init */
+        }
+      }
       const r = await opts.exec(
         "pnpm",
         [
           "exec", "tsx", "scripts/loop-state.ts", "init",
           "--qa-root", opts.qaRoot, "--run-id", id, "--run-root", runRoot,
           "--journey-key", f, "--mode", "regression", "--feature", f,
-          "--environment", ident(env.kind), "--role", "qa", "--org-alias", "default",
-          "--sha", ident(env.headSha ?? "none"), "--executor-id", "qa-harness",
+          "--environment", ident(runEnv.kind), "--role", "qa", "--org-alias", "default",
+          "--sha", ident(runEnv.headSha ?? "none"), "--executor-id", "qa-harness",
           "--task-model", `${runRoot}/${taskModelRef}`,
         ],
-        { cwd: opts.executorRoot, env: opts.env },
+        { cwd: opts.executorRoot, env },
       );
-      if (r.code !== 0) throw failure("run registration", r, opts.env);
+      if (r.code !== 0) throw new ExternalError(failure("run registration", r, opts.env).message);
     },
   };
 }
 
-export function makeScriptValidator(opts: { executorRoot: string; env: NodeJS.ProcessEnv; exec: ExecLike }): ScriptValidator {
+export function makeScriptValidator(opts: { executorRoot: string; qaRoot: string; env: NodeJS.ProcessEnv; exec: ExecLike }): ScriptValidator {
+  const env = withQaRoot(opts.env, opts.qaRoot);
   return async (specPath) => {
     const dir = path.dirname(specPath);
     ensureGeneratedHarness(dir, opts.executorRoot);
+    // One tsconfig per spec: a broken sibling spec must not fail this one.
+    const tsconfig = path.join(dir, `${path.basename(specPath).replace(/\.spec\.ts$/, "").replace(/\.ts$/, "")}.tsconfig.json`);
+    writeFileSync(
+      tsconfig,
+      JSON.stringify({ extends: "./tsconfig.json", include: [], files: [path.basename(specPath), "fixtures.ts"] }, null, 2),
+    );
     const bin = (name: string) => path.join(opts.executorRoot, "node_modules", ".bin", name);
-    const tsc = await opts.exec(bin("tsc"), ["-p", path.join(dir, "tsconfig.json"), "--noEmit"], { cwd: dir, env: opts.env });
+    const tsc = await opts.exec(bin("tsc"), ["-p", tsconfig, "--noEmit"], { cwd: dir, env });
     if (tsc.code !== 0) return { ok: false, output: (tsc.stdout + tsc.stderr).trim() };
-    const list = await opts.exec(bin("playwright"), ["test", "--list", "--config", path.join(dir, "playwright.config.ts"), specPath], { cwd: dir, env: opts.env });
+    const list = await opts.exec(bin("playwright"), ["test", "--list", "--config", path.join(dir, "playwright.config.ts"), specPath], { cwd: dir, env });
     if (list.code !== 0) return { ok: false, output: (list.stdout + list.stderr).trim() };
     return { ok: true, output: "" };
   };
