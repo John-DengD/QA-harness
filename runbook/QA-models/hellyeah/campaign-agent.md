@@ -1,5 +1,6 @@
 ---
 id: hellyeah.campaign-agent
+type: module
 product: hellyeah
 surfaces: [customer-dashboard, agent-conversation, api]
 status: pilot
@@ -8,7 +9,7 @@ last_reviewed: 2026-09-16
 related_modules: [hellyeah.onboarding-brand, hellyeah.campaign-composer, hellyeah.creative-studio, hellyeah.wallet-payment]
 ---
 
-# Campaign Agent
+# Campaign Agent（Campaign 智能体对话）
 
 ## 业务目标与边界
 
@@ -22,10 +23,10 @@ Agent 根据用户明确请求与当前组织品牌资料生成可审核的 Camp
 
 | Ref | Source | Role | Status |
 |---|---|---|---|
-| AGENT-SRC-001 | `sources/hellyeah/business_file/aima/specialists/campaign.md` | observation | historical snapshot, synced 2026-08-05 |
-| AGENT-SRC-002 | `sources/hellyeah/business_file/aima/user-flow.md` | observation | historical snapshot, synced 2026-08-05 |
-| AGENT-SRC-003 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
-| AGENT-SRC-004 | `sources/hellyeah/product-memory.md` | risk | current guidance; newer runtime rules require source recheck |
+| AGENT-S01 | `sources/hellyeah/business_file/aima/specialists/campaign.md` | observation | historical snapshot, synced 2026-08-05 |
+| AGENT-S02 | `sources/hellyeah/business_file/aima/user-flow.md` | observation | historical snapshot, synced 2026-08-05 |
+| AGENT-S03 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
+| AGENT-S04 | `sources/hellyeah/product-memory.md` | risk | current guidance; newer runtime rules require source recheck |
 
 ## 状态模型
 

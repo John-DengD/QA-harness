@@ -1,5 +1,6 @@
 ---
 id: hellyeah.meta-campaign
+type: module
 product: hellyeah
 surfaces: [customer-dashboard, admin-dashboard, api, meta]
 status: draft
@@ -26,10 +27,10 @@ Google 与 Meta 共享的部分（提交、扣款、退款、生命周期）见 
 
 ## 来源
 
-| Ref | Source | Role | Applies to | Status |
-|---|---|---|---|---|
-| META-SRC-001 | `hellyeah-v2` `packages/shared/src/constants/managed-ads.ts` | observation | 全部 Meta 枚举及注释中的 v0 约束 | current, read 2026-09-20 (staging) |
-| META-SRC-002 | `sources/hellyeah/product-memory.md` | user-confirmed | Meta 审核需先人工绑号 | current, 2026-09-20 确认 |
+| Ref | Source | Role | Status |
+|---|---|---|---|
+| META-S01 | `hellyeah-v2` `packages/shared/src/constants/managed-ads.ts` — 适用:全部 Meta 枚举及注释中的 v0 约束 | observation | current, read 2026-09-20 (staging) |
+| META-S02 | `sources/hellyeah/product-memory.md` — 适用:Meta 审核需先人工绑号 | user-confirmed | current, 2026-09-20 确认 |
 
 > `business_file/` 无 Meta 文档，事实来自代码，断言为 `draft`。
 > 代码注释中的 `D1` / `D9` 等标记指向某份设计决策文档，**该文档不在工作目录中**，需要时向研发索取。

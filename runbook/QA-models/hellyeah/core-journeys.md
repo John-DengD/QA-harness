@@ -1,12 +1,15 @@
 ---
 id: hellyeah.core-journeys
+type: module
 product: hellyeah
+surfaces: [customer-dashboard, admin-dashboard, api]
 status: draft
 version: 2
 last_reviewed: 2026-09-20
+related_modules: [hellyeah.onboarding-brand, hellyeah.campaign-agent, hellyeah.creative-studio, hellyeah.campaign-composer, hellyeah.campaign-launch, hellyeah.admin-review]
 ---
 
-# 核心链路回归清单
+# Core Journeys（核心链路回归清单）
 
 **独立的完整主链回归，不是普通 ticket 默认步骤。**
 

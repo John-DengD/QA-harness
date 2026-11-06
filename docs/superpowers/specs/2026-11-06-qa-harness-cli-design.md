@@ -179,7 +179,7 @@
 - `QA-Knowledge/` 中 `testing-heuristics.md`、`test-design-cases.md`、`bug-patterns.md` 是否迁移(见上)。
 - QA module 的统一命名与外部依赖文档的收拢(见第 11 节)。
 
-## 11. QA module 命名统一与外部依赖收拢(待用户确认)
+## 11. QA module 命名统一与外部依赖收拢(已执行)
 
 2026-11-06 只读审计(对象:安装副本 `QA-models/hellyeah/` 的 17 个文件)的结果:
 
@@ -217,3 +217,45 @@
 **尚未做:** 出处编号统一、frontmatter 与章节名统一、文件重命名(用户只确认了外部依赖部分);`hellyeah-v2` 代码引用的 commit SHA 补全(多数引用只有"读取日期",无法从现有材料还原 SHA);`README.md`、`_workflow/*` 中对旧路径的叙述性提及。
 
 **更正:** 第 11 节中"`product-memory.md` 有两种写法"不准确,`Hellyeah/product-memory.md` 与 `Hellyeah/User-Dashboard-test/product-memory.md` 是内容不同的两份文件。
+
+## 12. LLM 与 harness 的职责边界(待用户确认)
+
+**总则**
+- LLM 只做需要理解自然语言的判断:读文本、提方案、写草稿。
+- harness(代码)负责一切有规则、有副作用、要读事实的事:读文件、调接口、校验、执行、判定、落盘、退出码。
+- LLM 的每一个输出都只是提议。经 schema 校验和代码核对通过后才算数,通不过就重试,重试用完则退出,不用部分结果继续(沿用第 7 节)。
+
+**LLM 绝不做**
+- 读写文件、访问环境、接触任何密钥。需要的文本由 harness 读出来放进提示词。
+- 判定已执行 case 的结果(`Pass`、`ProductFail` 等)。判定由代码按第 4 节第 10 条映射。
+- 决定是否跳过校验、是否扩大预算、是否执行有副作用的动作。
+- 计算退出码,生成报告里的数字与结论。
+
+**harness 绝不做**
+- 判断一句话是不是验收标准、两条 case 是不是同一种失效机制、一个前置条件在当前环境能不能满足。这些是语义判断,交给 LLM。
+- 手写 Playwright 脚本。
+
+| 阶段 | LLM 做 | harness 做 |
+|---|---|---|
+| `extract` | 从 ticket、PR 文本拆出验收原子,给出 `sourceRef` 和逐字 `anchor`;整理变更模型(surface、实体、状态迁移、副作用) | 拉取 Linear 与 GitHub 内容;展开候选 PR、排除已 merged、找 `<!-- preview-sandbox -->` 评论、核对页脚 SHA 等于 PR head SHA;写 `env.json`;核对每个 anchor 在原文中存在(归一化后),不存在的原子不落盘并记录原因 |
+| `design` | 按七个生成器逐个推导并给出结论;写 case;判断失效机制是否重复;按"失败代价 × 发生可能"排序并提出裁剪 | 把 Runbook 原文放进提示词;校验 schema;检查七个生成器都有结论;核对 `sourceRef` 与 anchor;强制预算(`design.maxCases`、G1 全部纳入);没有权威出处的机制进候选池;保存 `cases.v1.json`、`cases.v2.json` |
+| `review` | 作为独立 reviewer(不同提示词,不看 design 推理)对每条 case 给 `keep`、`drop`、`revise` 和理由:重复、超范围、前置不可满足、副作用未授权 | anchor 在原文不存在的 case 直接判 `drop`,不经模型;检查每条 case 都有结论、理由非空;理由落盘;控制 `revise` 回路最多两轮,仍不合格转 `drop` |
+| `run` | **只有脚本生成一项**:依据 case 和实时 DOM 快照写 Playwright 脚本 | 按 case 确定性匹配现有脚本;校验生成脚本(类型检查加 `playwright test --list`)并有限重试;登记 run、建沙箱、设输出目录、调用脚本;校验录像;超时与 `action_unknown` 规则;Runbook 里未授权的副作用动作记 `Blocked`;确定性判定;日志脱敏;生成脚本的结果标 `generated`,断言失败一律 `Inconclusive` |
+| `report` | 不用 LLM(【我的决定】报告只汇总,不重新判定,也不让模型润色结论) | 全部由代码生成,包含固定的"独立性说明" |
+
+**需要用户确认的三点(都是我的选择)**
+1. `report` 完全不用 LLM。如果想要自然语言摘要,可以加,但摘要不得改变结论或数字。
+2. `design` 里的去重与排序由 LLM 做,代码只强制数量上限和 G1 全纳入,不自己判断哪条该删。
+3. `extract` 中 anchor 核对失败的原子直接不落盘并记录原因,而不是让整条命令失败。理由是单个原子的 anchor 写错不应让整张 ticket 无法测试;代价是可能少抽一条验收,所以落盘的原因清单要在报告里列出。
+
+### 11.2 命名统一:已执行(2026-11-06,用户授权"命名你自己来")
+
+对照表见 `runbook/QA-models/_workflow/naming-migration-2026-11-06.md`。做了:
+- 出处编号统一为 `<模块前缀>-S<两位序号>`(76 处),出处表列固定为 Ref、Source、Role、Status;原 Applies to 并入 Source;Role 限定五种(`code_observed`、`risk/user-confirmed rules`、`user-confirmed/risk` 取保守的一种并在 Status 保留原标注)。
+- `tracking-xray` 改名 `xray-tracking`,与 `xray-gtm-conversion` 前缀一致。
+- 所有 `hellyeah/` 下文件都有 frontmatter 和 `type`(module、index、routing);`core-journeys` 补了 `surfaces` 和 `related_modules`(由 J1 到 J5 的内容推出,待人确认);标题统一为"English name（中文名）"(中文名由我拟定)。
+- Runbook 加载器现在要求每个文件有合法 `type`,没有 frontmatter 也会报错并指出文件。`tests/runbook-conventions.test.ts` 把这些约定变成测试。
+
+**更正第 11 节的审计:** "Browser 观察点"与"Page Signals"在模板里是两个独立章节,不是同一类内容的两种叫法,因此没有改。"副作用、Bug 判断与回流"(精简模块)与"副作用与恢复"加"Bug 判断知识"(完整模块)是两种写法,精简模块的那一节是连续文字,无法机械拆分,所以两种都保留,模板里已说明,测试要求每个模块只用一种。
+
+**仍未做:** `hellyeah-v2` 代码引用的 commit SHA(多数只有读取日期);`README.md`、`_workflow/*` 里对旧路径的叙述性提及。

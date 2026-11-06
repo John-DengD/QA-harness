@@ -1,5 +1,6 @@
 ---
 id: hellyeah.campaign-lifecycle
+type: module
 product: hellyeah
 surfaces: [customer-dashboard, admin-dashboard, api, ad-platform]
 status: pilot
@@ -8,7 +9,7 @@ last_reviewed: 2026-10-19
 related_modules: [hellyeah.campaign-launch, hellyeah.admin-review, hellyeah.wallet-payment]
 ---
 
-# Campaign Lifecycle
+# Campaign Lifecycle（Campaign 生命周期）
 
 ## 业务目标与边界
 
@@ -22,10 +23,10 @@ Campaign 在创建、审核、投放、暂停、恢复、取消、完成和失�
 
 | Ref | Source | Role | Status |
 |---|---|---|---|
-| LIFE-SRC-001 | `sources/hellyeah/business_file/managed-ads/campaign-lifecycle.md` | observation | historical snapshot, synced 2026-08-05 |
-| LIFE-SRC-002 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
-| LIFE-SRC-003 | `sources/hellyeah/business_file/shared/payments/refund-flow.md` | observation | historical snapshot, synced 2026-08-05 |
-| LIFE-SRC-004 | `sources/qa-knowledge/domains/campaign.md` | risk | source recheck required |
+| LIFE-S01 | `sources/hellyeah/business_file/managed-ads/campaign-lifecycle.md` | observation | historical snapshot, synced 2026-08-05 |
+| LIFE-S02 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
+| LIFE-S03 | `sources/hellyeah/business_file/shared/payments/refund-flow.md` | observation | historical snapshot, synced 2026-08-05 |
+| LIFE-S04 | `sources/qa-knowledge/domains/campaign.md` | risk | source recheck required |
 
 ## 状态模型
 

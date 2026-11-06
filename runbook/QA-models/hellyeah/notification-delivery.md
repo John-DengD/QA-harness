@@ -1,5 +1,6 @@
 ---
 id: hellyeah.notification-delivery
+type: module
 product: hellyeah
 surfaces: [customer-dashboard, api, admin-dashboard, email-provider, webhook]
 status: pilot
@@ -8,7 +9,7 @@ last_reviewed: 2026-09-16
 related_modules: [hellyeah.settings-members, hellyeah.campaign-lifecycle]
 ---
 
-# Notification Delivery
+# Notification Delivery（通知投递）
 
 ## 业务目标与边界
 
@@ -22,10 +23,10 @@ related_modules: [hellyeah.settings-members, hellyeah.campaign-lifecycle]
 
 | Ref | Source | Role | Status |
 |---|---|---|---|
-| NOTIFY-SRC-001 | `sources/hellyeah/business_file/customer-dashboard.md#Notification Preferences` | observation | preference UI/API, synced 2026-08-05 |
-| NOTIFY-SRC-002 | `sources/hellyeah/product-memory.md` | user-confirmed/risk | lifecycle/delivery contracts require code/ticket recheck |
-| NOTIFY-SRC-003 | `sources/qa-knowledge/domains/webhook-event.md` | risk | current guidance |
-| NOTIFY-SRC-004 | `sources/hellyeah/version-history.md` | timeline | current timeline |
+| NOTIFY-S01 | `sources/hellyeah/business_file/customer-dashboard.md#Notification Preferences` | observation | preference UI/API, synced 2026-08-05 |
+| NOTIFY-S02 | `sources/hellyeah/product-memory.md` | risk | lifecycle/delivery contracts require code/ticket recheck(原标注 user-confirmed/risk) |
+| NOTIFY-S03 | `sources/qa-knowledge/domains/webhook-event.md` | risk | current guidance |
+| NOTIFY-S04 | `sources/hellyeah/version-history.md` | timeline | current timeline |
 
 ## Page Signals
 

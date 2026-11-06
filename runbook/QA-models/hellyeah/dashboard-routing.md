@@ -1,4 +1,10 @@
-# Customer Dashboard Ticket Routing
+---
+id: hellyeah.dashboard-routing
+type: routing
+product: hellyeah
+---
+
+# Customer Dashboard Ticket Routing（Customer Dashboard 工单路由）
 
 用于将 Dashboard Linear ticket 路由到产品模块。路由基于用户 surface、实体、动作和状态，不只匹配标题关键词。
 
@@ -12,11 +18,11 @@
 | Wallet、Top Up、transaction、refund | wallet-payment | auth-organization、campaign-launch |
 | Launch/Submit、pending internal review | campaign-launch | wallet-payment、admin-review |
 | Campaign detail、pause/resume/cancel、roadmap | campaign-lifecycle | wallet-payment、admin-review |
-| Tracking、X-Ray、event、funnel、attribution | tracking-xray | auth-organization、campaign-lifecycle |
+| Tracking、X-Ray、event、funnel、attribution | xray-tracking | auth-organization、campaign-lifecycle |
 | Settings profile/org/members/invites | settings-members | auth-organization、notification-delivery |
 | Settings Notifications、email delivery/suppression | notification-delivery | settings-members、campaign-lifecycle |
 | Settings Integrations / Stripe Revenue Connect | `model_gap: stripe-revenue-connect` | auth-organization、settings-members |
-| 第三方 postback delivery | `model_gap: postback-delivery` | tracking-xray、campaign-lifecycle |
+| 第三方 postback delivery | `model_gap: postback-delivery` | xray-tracking、campaign-lifecycle |
 
 ## 路由规则
 

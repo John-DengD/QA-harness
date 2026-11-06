@@ -1,5 +1,6 @@
 ---
 id: hellyeah.auth-organization
+type: module
 product: hellyeah
 surfaces: [customer-dashboard, api]
 status: pilot
@@ -8,7 +9,7 @@ last_reviewed: 2026-09-24
 related_modules: [hellyeah.wallet-payment, hellyeah.campaign-launch]
 ---
 
-# Auth & Organization
+# Auth & Organization（登录与组织）
 
 ## 业务目标与边界
 
@@ -20,12 +21,12 @@ related_modules: [hellyeah.wallet-payment, hellyeah.campaign-launch]
 
 ## 来源
 
-| Ref | Source | Role | Applies to | Status |
-|---|---|---|---|---|
-| AUTH-SRC-001 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | Customer Dashboard | historical snapshot, synced 2026-08-05 |
-| AUTH-SRC-002 | `sources/hellyeah/business_file/shared/authentication/user-identity.md` | observation | Identity and multi-tenancy | historical snapshot, synced 2026-08-05 |
-| AUTH-SRC-003 | `sources/hellyeah/user-dashboard/product-memory.md` | risk | Dashboard testing | current guidance |
-| AUTH-SRC-004 | `sources/hellyeah/user-dashboard/version-history.md` | timeline | Dashboard versions | current timeline |
+| Ref | Source | Role | Status |
+|---|---|---|---|
+| AUTH-S01 | `sources/hellyeah/business_file/customer-dashboard.md` — 适用:Customer Dashboard | observation | historical snapshot, synced 2026-08-05 |
+| AUTH-S02 | `sources/hellyeah/business_file/shared/authentication/user-identity.md` — 适用:Identity and multi-tenancy | observation | historical snapshot, synced 2026-08-05 |
+| AUTH-S03 | `sources/hellyeah/user-dashboard/product-memory.md` — 适用:Dashboard testing | risk | current guidance |
+| AUTH-S04 | `sources/hellyeah/user-dashboard/version-history.md` — 适用:Dashboard versions | timeline | current timeline |
 
 ## 状态模型
 

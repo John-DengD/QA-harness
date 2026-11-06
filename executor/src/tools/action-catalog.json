@@ -1,0 +1,2016 @@
+{
+  "adminTopUpOrganization": {
+    "intent": "管理员给组织钱包充值",
+    "aliases": [
+      "admin top up organization",
+      "Admin 充值"
+    ],
+    "rollback": "reversible",
+    "undoneBy": "reverseAdminTopUp",
+    "undoNote": "reverseAdminTopUp 冲销最新一笔充值；两条流水都会留在账本",
+    "args": 2
+  },
+  "approveAdminCampaignOnce": {
+    "intent": "管理员批准 Campaign 上线",
+    "rollback": "irreversible",
+    "undoNote": "批准会触发投放搭建；只提交一次，失败先只读核对 Campaign 状态"
+  },
+  "beginStudioSetGeneration": {
+    "intent": "开始生成 Studio 广告组并读取本地提交的 set ID",
+    "rollback": "irreversible",
+    "undoNote": "一次 Generate 提交，没有撤回 Action；无响应先读本地提交记录"
+  },
+  "bindSelectedMetaPage": {
+    "intent": "把选中的 Facebook 主页绑定到组织",
+    "rollback": "reversible",
+    "undoneBy": "bindSelectedMetaPage",
+    "undoNote": "openMetaPagePicker → selectMetaPage 选原主页 → 再绑定即可换绑；页面另有 Disconnect Page 解绑（apps/dashboard/src/features/campaigns/launch/page.tsx），对应 disconnectMetaPageOnce"
+  },
+  "confirmMetaByoAdoptExistingAccount": {
+    "intent": "在 BYO 授权弹窗确认复用已连接的广告账户",
+    "rollback": "read"
+  },
+  "disconnectMetaPageOnce": {
+    "intent": "解绑组织当前绑定的 Facebook 主页",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "没有单一撤销 Action：openMetaPagePicker → selectMetaPage → bindSelectedMetaPage 三步重新绑回；后端不会撤销 Hellyeah 在 Meta 侧对该 Page 的授权，只清除组织自己的 pageId"
+  },
+  "importMetaByoAdAccountOnce": {
+    "intent": "把 BYO 授权中选中的广告账户和主页导入到组织",
+    "rollback": "irreversible",
+    "undoNote": "导入会把广告账户和 Page 绑定到组织；没有撤回 Action，无响应先只读核对组织的 Meta 账户状态"
+  },
+  "mockMetaByoAuthorization": {
+    "intent": "mock BYO 授权弹窗的 resolve 接口，跳过真实 Meta OAuth",
+    "rollback": "read"
+  },
+  "mockMetaCustomerAuthorization": {
+    "intent": "mock 客户自助 Facebook 主页授权的 authorized-pages 接口，跳过真实 Nango 弹窗",
+    "rollback": "read"
+  },
+  "openMetaByoAuthorizationDialog": {
+    "intent": "打开 Admin 的 Meta BYO 授权弹窗",
+    "rollback": "read"
+  },
+  "openMetaPageDisconnectConfirmation": {
+    "intent": "打开解绑 Facebook 主页确认弹窗",
+    "rollback": "read"
+  },
+  "selectMetaByoAdAccount": {
+    "intent": "在 BYO 授权弹窗选中广告账户",
+    "rollback": "read"
+  },
+  "selectMetaByoPage": {
+    "intent": "在 BYO 授权弹窗选中 Facebook 主页",
+    "rollback": "read"
+  },
+  "startMetaByoAuthorizationLink": {
+    "intent": "生成 BYO 授权链接并进入等待客户授权状态",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "授权链接会在 expiresAt 后自动失效，关闭弹窗即放弃该 session，没有显式撤销 Action"
+  },
+  "waitForMockedMetaByoReview": {
+    "intent": "等待 mock 后的 BYO resolve 结果进入 review 步骤",
+    "rollback": "read"
+  },
+  "calculateWebsiteRoas": {
+    "intent": "用官网 ROAS 计算器计算",
+    "rollback": "read"
+  },
+  "cancelCustomerCampaignOnce": {
+    "intent": "用户取消 Campaign",
+    "rollback": "irreversible",
+    "undoNote": "取消不能撤回；只提交一次，无响应先只读核对"
+  },
+  "chooseOnboardingDailyBudget": {
+    "intent": "onboarding 选择每日预算",
+    "rollback": "reversible",
+    "undoneBy": "chooseOnboardingDailyBudget",
+    "undoNote": "选回原来的预算选项"
+  },
+  "chooseOnboardingObjective": {
+    "intent": "onboarding 选择投放目标",
+    "rollback": "reversible",
+    "undoneBy": "chooseOnboardingObjective",
+    "undoNote": "选回原来的目标选项"
+  },
+  "chooseOnboardingRegion": {
+    "intent": "onboarding 选择投放地区",
+    "rollback": "reversible",
+    "undoneBy": "chooseOnboardingRegion",
+    "undoNote": "选回原来的地区选项"
+  },
+  "clearMetaBrandApp": {
+    "intent": "清空品牌的 Meta 推广 App 并保存",
+    "rollback": "reversible",
+    "undoneBy": "restoreMetaBrandProfile",
+    "undoNote": "先 inspectMetaBrandProfile 记下原值，再 restoreMetaBrandProfile"
+  },
+  "closeCampaignCreativePicker": {
+    "intent": "关闭广告选择器",
+    "aliases": [
+      "close ad picker"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "creative-picker-open"
+    ],
+    "verification": "reviewed"
+  },
+  "confirmCampaignCreativeImport": {
+    "intent": "把选中的广告导入草稿",
+    "rollback": "reversible",
+    "undoneBy": "confirmCampaignCreativeImport",
+    "undoNote": "重新 openCampaignCreativePicker → 选另一个 creative → 再导入即可替换"
+  },
+  "confirmOnboardingBrand": {
+    "intent": "onboarding 确认品牌调研结果",
+    "rollback": "reversible",
+    "undoneBy": "resetOnboardingDraft",
+    "undoNote": "只能 start over 整体回退（resetOnboardingDraft 本身不可撤回），会丢弃本次 onboarding 进度"
+  },
+  "confirmStudioProductBrief": {
+    "intent": "Studio 确认并锁定产品简介",
+    "rollback": "reversible",
+    "undoneBy": "reopenStudioProductBrief",
+    "undoNote": "reopenStudioProductBrief 解锁重新编辑"
+  },
+  "confirmSwitchToTraffic": {
+    "intent": "把草稿切到 Traffic",
+    "aliases": [
+      "confirm switch to traffic",
+      "confirm Draft as Traffic",
+      "确认切换 Traffic"
+    ],
+    "rollback": "reversible",
+    "undoneBy": "switchDraftBackFromTraffic",
+    "undoNote": "Search 草稿（旧版本）草稿打开期间用 switchDraftBackFromTraffic 切回原目标；PMax 草稿（Draft as Traffic）是 agent 重新起草成 Search，没有 Switch Back，要回到 Sales/Signups 只能新建草稿",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer",
+      "tracking-card"
+    ],
+    "preconditions": [
+      "Switch to Traffic dialog open"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "tracking-card-state",
+      "campaign-goal",
+      "campaign-type",
+      "campaign-bidding"
+    ],
+    "verification": "reviewed"
+  },
+  "continueOrganizationSetup": {
+    "intent": "登录后完成组织设置步骤",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "不新建组织，只推进已有组织的设置；组织选择可用 selectOrganization 切换"
+  },
+  "continueStudioToStyle": {
+    "intent": "Studio 确认 context 进入风格选择",
+    "aliases": [
+      "Studio 从简介进入风格选择",
+      "confirm Studio context and open style picks"
+    ],
+    "rollback": "reversible",
+    "undoneBy": "reopenStudioProductBrief",
+    "undoNote": "reopenStudioProductBrief 重新打开简介（参考图清空）；风格推荐只是只读请求，不落库"
+  },
+  "shuffleStudioReferences": {
+    "intent": "Studio 换一批推荐参考风格",
+    "aliases": [
+      "shuffle Studio references",
+      "重新推荐风格"
+    ],
+    "rollback": "read"
+  },
+  "createAdminMember": {
+    "intent": "在 Admin 团队新建成员",
+    "rollback": "reversible",
+    "undoneBy": "removeAdminMember",
+    "undoNote": "removeAdminMember 移除该成员（共享 QA 账号不可移除）",
+    "denied": "参数是秘密（密码/验证码/卡号），--args-json 会进 shell 历史与进程列表；见 SHARED_ACTION_DENYLIST"
+  },
+  "discardMetaDraft": {
+    "intent": "丢弃当前 Campaign 草稿",
+    "rollback": "irreversible",
+    "undoNote": "草稿被丢弃，没有恢复 Action"
+  },
+  "discloseAgentCheckoutIfPresent": {
+    "intent": "在 Stripe 结账勾选 AI 代理声明",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "只改 Stripe 结账页表单，离开结账页即作废；没有取消勾选的 Action"
+  },
+  "expandCampaignCopyEditor": {
+    "intent": "展开草稿的文案编辑区",
+    "aliases": [
+      "expand campaign copy editor",
+      "展开 Edit copy"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "copy-editor-expanded"
+    ],
+    "verification": "reviewed"
+  },
+  "fillAdminApprovalReason": {
+    "intent": "在 Admin 批准弹窗填写批准理由",
+    "rollback": "read"
+  },
+  "fillInstantFormPolicyUrl": {
+    "intent": "在即时表单填写隐私政策链接",
+    "rollback": "read"
+  },
+  "focusTrackingCardFromReadiness": {
+    "intent": "从 Readiness 的转化追踪行定位到 tracking 卡片",
+    "aliases": [
+      "open tracking card from readiness row",
+      "click conversion tracking row",
+      "从 Readiness 行定位卡片"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer",
+      "tracking-card"
+    ],
+    "states": [
+      "missing",
+      "waiting"
+    ],
+    "preconditions": [
+      "Google Sales/Signups draft with a Conversion tracking readiness row"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "tracking-card-focus"
+    ],
+    "verification": "reviewed",
+    "driftSentinels": {
+      "cardState": [
+        "unrecognized"
+      ],
+      "rowDetail": [
+        "unrecognized"
+      ]
+    }
+  },
+  "generateStudioSet": {
+    "intent": "生成 Studio 广告组并读取返回的 Google/Meta 素材包",
+    "rollback": "irreversible",
+    "undoNote": "创建 creative set 并启动图片生成，没有撤回 Action"
+  },
+  "getDashboardReadySignal": {
+    "intent": "定位 Dashboard 就绪信号（helper，返回 Locator）",
+    "rollback": "read"
+  },
+  "inspectAdminMember": {
+    "intent": "查找 Admin 团队成员",
+    "rollback": "read",
+    "args": 1
+  },
+  "inspectAdminMemberPasswordPolicy": {
+    "intent": "读取 Admin 新建成员的密码规则",
+    "rollback": "read",
+    "args": 0
+  },
+  "inspectMetaBrandProfile": {
+    "intent": "读取品牌的 Meta App、商店链接与 Pixel",
+    "rollback": "read"
+  },
+  "inspectMetaCampaignDraft": {
+    "intent": "读取 Meta 草稿详情",
+    "rollback": "read"
+  },
+  "inspectOrganizationSetupPrompt": {
+    "intent": "检查登录后是否出现组织设置提示",
+    "rollback": "read"
+  },
+  "inspectSignInNavigation": {
+    "intent": "确认登录后已离开登录页",
+    "rollback": "read"
+  },
+  "inspectWebsiteBlogSitemap": {
+    "intent": "检查官网博客与 sitemap",
+    "rollback": "read"
+  },
+  "inspectWebsiteHomeSeo": {
+    "intent": "读取官网首页 SEO 信息",
+    "rollback": "read"
+  },
+  "keepGoalInTrafficDialog": {
+    "intent": "在切换 Traffic 弹窗中保留原目标",
+    "aliases": [
+      "keep current goal in traffic dialog",
+      "Keep Sales",
+      "Keep Signups"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer",
+      "tracking-card"
+    ],
+    "preconditions": [
+      "Switch to Traffic dialog open"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "campaign-goal",
+      "tracking-card-state"
+    ],
+    "verification": "reviewed"
+  },
+  "observeCampaignBudget": {
+    "intent": "读取草稿预算",
+    "aliases": [
+      "read campaign budget",
+      "读取预算"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "campaign-budget"
+    ],
+    "verification": "reviewed"
+  },
+  "observeCampaignCopyActions": {
+    "intent": "读取文案编辑与重新生成按钮是否可见",
+    "aliases": [
+      "observe edit copy actions"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "copy-actions-visible"
+    ],
+    "verification": "reviewed"
+  },
+  "observeCampaignCreativeCards": {
+    "intent": "读取草稿已选广告数量",
+    "aliases": [
+      "count campaign ad cards",
+      "读取已选广告"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "creative-card-count"
+    ],
+    "verification": "reviewed"
+  },
+  "observeCampaignCreativePicker": {
+    "intent": "读取广告选择器是否打开",
+    "aliases": [
+      "observe ad picker open"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "creative-picker-open"
+    ],
+    "verification": "reviewed"
+  },
+  "observeCampaignDraftStable": {
+    "intent": "读取草稿是否已生成完毕",
+    "aliases": [
+      "observe campaign draft ready",
+      "草稿是否就绪"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "draft-stable"
+    ],
+    "verification": "reviewed"
+  },
+  "observeCampaignKeywords": {
+    "intent": "读取草稿关键词",
+    "aliases": [
+      "expand campaign details read keywords",
+      "read campaign keywords",
+      "展开 Details 读取关键词"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "Search campaign draft"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "campaign-keywords"
+    ],
+    "verification": "reviewed"
+  },
+  "observeCampaignLaunchButton": {
+    "intent": "读取 Launch 按钮是否可用",
+    "aliases": [
+      "observe launch button enabled",
+      "Launch 按钮是否可用"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "launch-enabled"
+    ],
+    "verification": "reviewed"
+  },
+  "observeCampaignLaunchConfirmation": {
+    "intent": "读取 launch 后的确认区与预留金额",
+    "rollback": "read"
+  },
+  "observeCampaignLaunchReadiness": {
+    "intent": "等待 Launch 按钮变为可用",
+    "aliases": [
+      "wait until launch enabled",
+      "等待可以 launch"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "draft expected to become launchable"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "launch-enabled"
+    ],
+    "verification": "reviewed",
+    "mustHaveValue": [
+      "enabled"
+    ]
+  },
+  "observeCampaignPendingReview": {
+    "intent": "读取 Campaign 审核中状态标记",
+    "rollback": "read"
+  },
+  "observeCampaignPlatformAvailability": {
+    "intent": "读取新建 Campaign 的平台选项（Google/Meta）",
+    "rollback": "read"
+  },
+  "observeCampaignProtectiveActions": {
+    "intent": "读取 Campaign 暂停与取消按钮状态",
+    "aliases": [
+      "observe pause cancel campaign",
+      "读取暂停 取消按钮"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-detail"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "pause-cancel-availability"
+    ],
+    "verification": "reviewed"
+  },
+  "observeCampaignType": {
+    "intent": "读取 campaign 类型",
+    "aliases": [
+      "read campaign type"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "campaign-type"
+    ],
+    "verification": "reviewed"
+  },
+  "observeCampaignTypeLabel": {
+    "intent": "读取 Campaign type 标签是否显示",
+    "aliases": [
+      "observe campaign type label"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "campaign-type-label-visible"
+    ],
+    "verification": "reviewed"
+  },
+  "observeSelectedOnboardingAdStyles": {
+    "intent": "读取 onboarding 已选广告风格数",
+    "rollback": "read"
+  },
+  "observeStudioComposerPlatformSummary": {
+    "intent": "读取 Studio 生成栏的平台汇总",
+    "rollback": "read"
+  },
+  "observeStudioCreateControls": {
+    "intent": "读取 Studio 新建面板标题与继续按钮",
+    "rollback": "read"
+  },
+  "observeStudioGenerateGate": {
+    "intent": "读取 Studio Generate 按钮是否可用",
+    "rollback": "read"
+  },
+  "observeStudioLibraryControls": {
+    "intent": "读取 Studio 素材库的筛选与搜索控件",
+    "rollback": "read",
+    "mustHaveValue": [
+      "headingVisible"
+    ]
+  },
+  "observeStudioLibraryRuns": {
+    "intent": "读取 Studio 素材库卡片与生成中数量",
+    "rollback": "read",
+    "mustHaveValue": [
+      "cardCount"
+    ]
+  },
+  "observeStudioMetaVisibility": {
+    "intent": "读取 Studio 中 Meta 素材入口是否可见",
+    "rollback": "read"
+  },
+  "observeStudioReferenceMedia": {
+    "intent": "等待已选参考图加载完成",
+    "rollback": "read"
+  },
+  "observeSupportWidget": {
+    "intent": "读取客服挂件状态",
+    "rollback": "read"
+  },
+  "openAdminApprovalPreview": {
+    "intent": "打开 Admin 批准预览并读取上线就绪度",
+    "rollback": "read"
+  },
+  "openAdminCampaign": {
+    "intent": "在 Admin 打开指定 Campaign",
+    "rollback": "read"
+  },
+  "openCampaignComposer": {
+    "intent": "打开新建 Campaign 页",
+    "aliases": [
+      "open campaign composer",
+      "open new campaign page",
+      "创建 campaign",
+      "打开广告活动编辑器"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "composer-visible"
+    ],
+    "verification": "reviewed"
+  },
+  "openCampaignCreativePicker": {
+    "intent": "打开广告选择器",
+    "aliases": [
+      "open ad picker",
+      "change ads"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "creative-picker-open"
+    ],
+    "verification": "reviewed"
+  },
+  "openCampaignDraft": {
+    "intent": "按 ID 打开 Campaign 草稿",
+    "rollback": "read",
+    "args": 1
+  },
+  "openCampaignList": {
+    "intent": "打开 Campaign 列表",
+    "aliases": [
+      "open campaign list",
+      "查看 campaign 列表",
+      "打开广告活动列表"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-list"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "campaign-list-url"
+    ],
+    "verification": "reviewed"
+  },
+  "openCampaignOnboardingDraft": {
+    "intent": "从 Campaign 列表进入 onboarding 生成的草稿",
+    "rollback": "read",
+    "args": 0
+  },
+  "openCustomerCampaign": {
+    "intent": "用户端打开指定 Campaign",
+    "rollback": "read"
+  },
+  "openCustomerCancelConfirmation": {
+    "intent": "打开取消 Campaign 确认弹窗",
+    "rollback": "read"
+  },
+  "openDashboardAccountMenu": {
+    "intent": "打开 Dashboard 账号菜单",
+    "rollback": "read"
+  },
+  "openDashboardDocs": {
+    "intent": "从 Dashboard 账号菜单打开文档",
+    "rollback": "read"
+  },
+  "openDashboardSettings": {
+    "intent": "打开 Dashboard 设置页",
+    "rollback": "read"
+  },
+  "openDashboardSupport": {
+    "intent": "从 Dashboard 账号菜单打开客服",
+    "rollback": "read"
+  },
+  "openExistingCampaignDetail": {
+    "intent": "打开已有 Campaign 详情",
+    "aliases": [
+      "open campaign detail",
+      "打开 campaign 详情"
+    ],
+    "rollback": "read",
+    "args": 1,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-list",
+      "campaign-detail"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization",
+      "campaign link visible on the current page"
+    ],
+    "inputs": [
+      "campaign UUID"
+    ],
+    "providedFacts": [
+      "campaign-detail-url"
+    ],
+    "verification": "reviewed"
+  },
+  "openForcedOnboarding": {
+    "intent": "强制打开 onboarding 并检查是否可续",
+    "rollback": "read"
+  },
+  "openInstantFormEditor": {
+    "intent": "打开即时表单编辑器",
+    "rollback": "read"
+  },
+  "openMarketingFooterContact": {
+    "intent": "从官网页脚打开联系我们",
+    "rollback": "read"
+  },
+  "openMarketingFooterDocs": {
+    "intent": "从官网页脚打开文档",
+    "rollback": "read"
+  },
+  "openMarketingSupport": {
+    "intent": "从官网页脚打开客服",
+    "rollback": "read"
+  },
+  "openMetaBrandEditor": {
+    "intent": "打开品牌编辑页的 Meta 资产区",
+    "rollback": "read"
+  },
+  "openMetaDraftComposer": {
+    "intent": "打开新建 Campaign 页并检查是否有未完成草稿",
+    "rollback": "read"
+  },
+  "openMetaPagePicker": {
+    "intent": "打开 Facebook 主页选择器",
+    "rollback": "read"
+  },
+  "openOnboardingCampaign": {
+    "intent": "从 onboarding 进入生成的 Campaign",
+    "rollback": "read"
+  },
+  "openOrganizationTransactions": {
+    "intent": "读取组织钱包流水（Admin）",
+    "rollback": "read",
+    "args": 1
+  },
+  "openSignInForm": {
+    "intent": "打开用户登录页",
+    "rollback": "read"
+  },
+  "openSignUpForm": {
+    "intent": "打开用户注册页",
+    "rollback": "read"
+  },
+  "openStudioCreateSheet": {
+    "intent": "打开 Studio 新建广告面板",
+    "rollback": "read"
+  },
+  "openStudioLibrary": {
+    "intent": "打开 Studio 素材库",
+    "aliases": [
+      "open Studio library",
+      "打开素材库",
+      "查看 Creative Set"
+    ],
+    "rollback": "read",
+    "surfaces": [
+      "dashboard",
+      "studio"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "studio-library"
+    ],
+    "providedFacts": [
+      "studio-url",
+      "studio-create-entry-visible"
+    ],
+    "verification": "candidate"
+  },
+  "openStudioVideoAdBrief": {
+    "intent": "打开 Studio Video ad 简介页但不提交生成",
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard",
+      "studio"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "studio-library",
+      "studio-video-ad"
+    ],
+    "providedFacts": [
+      "video-ad-brief",
+      "video-ad-confirm-enabled"
+    ],
+    "verification": "candidate"
+  },
+  "openStudioSetReview": {
+    "intent": "打开 Studio 广告组的 Google 审阅页",
+    "rollback": "read"
+  },
+  "openSwitchToTrafficDialog": {
+    "intent": "打开切到 Traffic 的确认弹窗",
+    "aliases": [
+      "open switch to traffic dialog",
+      "打开 Switch to Traffic 弹窗",
+      "open Draft as Traffic dialog",
+      "打开 Draft as Traffic 弹窗"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer",
+      "tracking-card"
+    ],
+    "states": [
+      "missing",
+      "waiting"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "traffic-switch-changes"
+    ],
+    "verification": "reviewed",
+    "mustHaveValue": [
+      "title",
+      "description",
+      "keepLabel",
+      "confirmLabel"
+    ]
+  },
+  "openWalletTopUp": {
+    "intent": "打开钱包充值入口",
+    "rollback": "read"
+  },
+  "openWebsiteEventDetail": {
+    "intent": "打开官网活动详情",
+    "rollback": "read"
+  },
+  "prepareSignUpVerificationCode": {
+    "intent": "确保注册验证码已发送（必要时重发）",
+    "rollback": "irreversible",
+    "undoNote": "可能重发验证码邮件，邮件发出不能撤回"
+  },
+  "prepareStudioReferenceUpload": {
+    "intent": "Studio 确认参考图行可以上传参考图（Upload 可点、文件框就绪）",
+    "aliases": [
+      "check Studio reference upload is ready",
+      "确认可以上传参考图"
+    ],
+    "rollback": "read"
+  },
+  "prepareWalletCardPayment": {
+    "intent": "在 Stripe 结账填写银行卡",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "只填表不提交，离开结账页即作废；没有清空 Action",
+    "denied": "参数是银行卡号/有效期/CVC，--args-json 会进 shell 历史与进程列表；见 SHARED_ACTION_DENYLIST"
+  },
+  "readAdminAdAccount": {
+    "intent": "读取 Campaign 的广告账户信息（Admin）",
+    "rollback": "read"
+  },
+  "readAdminMetaLeadForm": {
+    "intent": "读取 Campaign 的 Meta 线索表单（Admin）",
+    "rollback": "read"
+  },
+  "readAdminMetaPageCapability": {
+    "intent": "读取 Meta 主页与线索 webhook 能力（Admin）",
+    "rollback": "read"
+  },
+  "readAdminMetaResources": {
+    "intent": "读取 Meta 投放资源 ad set / creative / ad（Admin）",
+    "rollback": "read"
+  },
+  "readAdminSetupOutcome": {
+    "intent": "读取 Campaign 批准后的投放搭建结果（Admin）",
+    "rollback": "read"
+  },
+  "readAuditLogEntries": {
+    "intent": "读取 Admin 审计日志",
+    "rollback": "read",
+    "args": 0
+  },
+  "readCampaignStrategySummary": {
+    "intent": "读取草稿的目标、类型和出价",
+    "aliases": [
+      "read campaign goal type bidding",
+      "read campaign strategy",
+      "读取 campaign 目标 类型 出价"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "campaign-goal",
+      "campaign-type",
+      "campaign-bidding"
+    ],
+    "verification": "reviewed",
+    "mustHaveValue": [
+      "campaignType"
+    ]
+  },
+  "readCustomerCampaignAndWallet": {
+    "intent": "读取用户端 Campaign 状态与钱包预留/可用金额",
+    "rollback": "read"
+  },
+  "readGoogleTrackingReadiness": {
+    "intent": "读取 Google 转化追踪状态",
+    "aliases": [
+      "read Google tracking readiness",
+      "检查 Google 转化追踪",
+      "读取 tracking 状态",
+      "read conversion tracking row"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer",
+      "tracking-card"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization",
+      "Google tracking surface available"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "tracking-readiness",
+      "tracking-card-state",
+      "traffic-switch-button-label",
+      "readiness-row-text"
+    ],
+    "verification": "reviewed",
+    "states": [
+      "missing",
+      "waiting",
+      "live",
+      "traffic"
+    ],
+    "mustHaveValue": [
+      "cardState"
+    ],
+    "allowedValues": {
+      "cardState": [
+        "missing",
+        "waiting",
+        "live",
+        "traffic",
+        "absent"
+      ],
+      "readiness.conversionTrackingRow": [
+        "required",
+        "not connected",
+        "unconfirmed",
+        "absent"
+      ],
+      "trafficSwitchLabel": [
+        "Switch to Traffic",
+        "Draft as Traffic"
+      ]
+    },
+    "driftSentinels": {
+      "cardState": [
+        "unrecognized"
+      ],
+      "readiness.conversionTrackingRow": [
+        "unrecognized"
+      ]
+    }
+  },
+  "readInstantFormReadiness": {
+    "intent": "读取即时表单就绪状态",
+    "rollback": "read"
+  },
+  "readMetaAvailabilityStatus": {
+    "intent": "读取系统状态中的 Meta 可用性",
+    "rollback": "read"
+  },
+  "readMetaPageBinding": {
+    "intent": "读取组织绑定的 Facebook 主页",
+    "rollback": "read"
+  },
+  "readStudioProductBrief": {
+    "intent": "读取 Studio 产品简介",
+    "rollback": "read"
+  },
+  "readTrackingSetupLink": {
+    "intent": "读取 Set Up Tracking 链接去向",
+    "aliases": [
+      "read set up tracking link",
+      "setup tracking link target",
+      "读取 Set Up Tracking 链接"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer",
+      "tracking-card"
+    ],
+    "states": [
+      "missing",
+      "waiting"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "setup-link-target"
+    ],
+    "verification": "reviewed"
+  },
+  "readWalletBalanceAndTransactions": {
+    "intent": "读取钱包余额与交易",
+    "aliases": [
+      "read wallet balance",
+      "查看钱包余额",
+      "读取充值交易"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "wallet"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "wallet-summary-text",
+      "wallet-transaction-rows"
+    ],
+    "verification": "reviewed",
+    "mustHaveValue": [
+      "pageUrl",
+      "summaryText"
+    ]
+  },
+  "removeAdminMember": {
+    "intent": "从 Admin 团队移除成员",
+    "rollback": "irreversible",
+    "undoNote": "移除不能撤回；createAdminMember 只能新建（且被禁止共享执行），不恢复原成员",
+    "args": 1
+  },
+  "reopenStudioProductBrief": {
+    "intent": "Studio 解锁产品简介重新编辑",
+    "rollback": "reversible",
+    "undoneBy": "confirmStudioProductBrief",
+    "undoNote": "confirmStudioProductBrief 重新锁定"
+  },
+  "resetOnboardingDraft": {
+    "intent": "丢弃 onboarding 草稿重新开始",
+    "rollback": "irreversible",
+    "undoNote": "丢弃可续的草稿，不能恢复"
+  },
+  "restoreMetaBrandProfile": {
+    "intent": "恢复品牌的 Meta 资产设置并保存",
+    "rollback": "reversible",
+    "undoneBy": "restoreMetaBrandProfile",
+    "undoNote": "用之前 inspectMetaBrandProfile 读到的值再调用 restoreMetaBrandProfile"
+  },
+  "resumeSavedCampaignDraft": {
+    "intent": "恢复已保存的草稿",
+    "aliases": [
+      "resume saved campaign draft",
+      "Resume Draft",
+      "恢复保存的草稿"
+    ],
+    "rollback": "reversible",
+    "undoneBy": "startOverCampaignDraft",
+    "undoNote": "startOverCampaignDraft 再次把草稿存起来回到目标输入",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "Saved draft card on the goal screen"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "campaign-goal",
+      "campaign-type",
+      "campaign-bidding"
+    ],
+    "verification": "reviewed"
+  },
+  "retryCampaignChangesSave": {
+    "intent": "重试保存草稿修改",
+    "aliases": [
+      "retry saving campaign changes",
+      "Retry saving",
+      "重试保存草稿"
+    ],
+    "rollback": "irreversible",
+    "undoNote": "把草稿计划写入后端，没有撤回 Action；无响应时先只读核对再决定",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "Changes could not be saved alert visible"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "save-response-status",
+      "save-failed-visible"
+    ],
+    "verification": "reviewed"
+  },
+  "returnToStudioLibrary": {
+    "intent": "从 Studio 工作区返回素材库",
+    "rollback": "read"
+  },
+  "reverseAdminTopUp": {
+    "intent": "冲销最新一笔管理员充值",
+    "rollback": "irreversible",
+    "undoNote": "冲销本身不能再撤；要恢复余额只能再充值一笔新流水",
+    "args": 2
+  },
+  "saveInstantForm": {
+    "intent": "保存即时表单",
+    "rollback": "reversible",
+    "undoneBy": "saveInstantForm",
+    "undoNote": "openInstantFormEditor → 改回原值 → 再保存"
+  },
+  "selectAdminCampaignVersion": {
+    "intent": "在 Admin 切换查看 Campaign 的历史版本",
+    "rollback": "read"
+  },
+  "selectCampaignGoogleSearchCreative": {
+    "intent": "在广告选择器选中一个 Google 搜索广告",
+    "rollback": "read"
+  },
+  "selectCardPaymentMethodIfPresent": {
+    "intent": "在 Stripe 结账选择银行卡支付",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "只改 Stripe 结账页表单，离开结账页即作废；没有改回的 Action"
+  },
+  "selectMetaCampaign": {
+    "intent": "在新建 Campaign 页选择 Meta 平台",
+    "rollback": "read"
+  },
+  "selectMetaPage": {
+    "intent": "在主页选择器选中 Facebook 主页",
+    "rollback": "read"
+  },
+  "selectNextOnboardingAdStyle": {
+    "intent": "onboarding 再选一个广告风格",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "再点同一风格取消选择；库里没有取消 Action"
+  },
+  "selectOrganization": {
+    "intent": "切换当前组织",
+    "aliases": [
+      "switch organization",
+      "switch org",
+      "切换组织",
+      "切换团队"
+    ],
+    "rollback": "reversible",
+    "undoneBy": "selectOrganization",
+    "undoNote": "用原组织名再调用 selectOrganization",
+    "args": 1,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "organization-menu"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "target organization membership"
+    ],
+    "inputs": [
+      "organization name"
+    ],
+    "providedFacts": [
+      "active-organization"
+    ],
+    "verification": "reviewed"
+  },
+  "selectSettingsTab": {
+    "intent": "打开设置页的指定分栏（Profile/Organization/Integrations/Notifications）",
+    "rollback": "read"
+  },
+  "selectStudioReference": {
+    "intent": "选择 Studio 推荐参考图",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "再点同一张参考图取消选择；库里没有单独的取消 Action"
+  },
+  "setCampaignBudget": {
+    "intent": "设置草稿预算",
+    "rollback": "reversible",
+    "undoneBy": "setCampaignBudget",
+    "undoNote": "先用 observeCampaignBudget 记下原值，再用原值调用 setCampaignBudget"
+  },
+  "setCampaignDeliveryDays": {
+    "intent": "设置草稿投放天数（结束日期）",
+    "rollback": "reversible",
+    "undoneBy": "setCampaignDeliveryDays",
+    "undoNote": "用原来的天数再调用 setCampaignDeliveryDays"
+  },
+  "setFullAutoEnrollment": {
+    "intent": "开关 Full-Auto 优化",
+    "rollback": "reversible",
+    "undoneBy": "setFullAutoEnrollment",
+    "undoNote": "用相反的开关值再调用 setFullAutoEnrollment"
+  },
+  "setStudioProductBrief": {
+    "intent": "Studio 填写产品简介",
+    "rollback": "reversible",
+    "undoneBy": "setStudioProductBrief",
+    "undoNote": "先 readStudioProductBrief 记下原文，再用原文调用 setStudioProductBrief"
+  },
+  "signInAdmin": {
+    "intent": "用账号密码登录 Admin 后台",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "Admin 后台没有登出 Action；结束会话需关闭浏览器会话或清 cookie",
+    "denied": "参数是秘密（密码/验证码/卡号），--args-json 会进 shell 历史与进程列表；见 SHARED_ACTION_DENYLIST"
+  },
+  "signInAdminFromEnv": {
+    "intent": "以主管理员（qa-env）登录 Admin 后台",
+    "aliases": [
+      "admin sign in",
+      "管理员登录"
+    ],
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "Admin 后台没有登出 Action；结束会话需关闭浏览器会话或清 cookie",
+    "args": 0
+  },
+  "signInReadOnlyAdminFromEnv": {
+    "intent": "以只读管理员 qa-admin-ro 登录 Admin 后台",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "Admin 后台没有登出 Action；结束会话需关闭浏览器会话或清 cookie",
+    "args": 0
+  },
+  "signInSecondAdminFromEnv": {
+    "intent": "以第二管理员 qa-admin-2 登录 Admin 后台",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "Admin 后台没有登出 Action；结束会话需关闭浏览器会话或清 cookie",
+    "args": 0
+  },
+  "signOutAccount": {
+    "intent": "退出用户账号登录",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "重新登录要 submitSignInIdentifier + submitSignInPassword（后者被禁止共享执行）或 Clerk sign-in token，没有单个撤回 Action"
+  },
+  "skipOnboardingInvite": {
+    "intent": "跳过 onboarding 邀请成员进入 Dashboard",
+    "rollback": "reversible",
+    "undoneBy": "resetOnboardingDraft",
+    "undoNote": "只能 start over 整体回退（resetOnboardingDraft 本身不可撤回），会丢弃本次 onboarding 进度"
+  },
+  "startOverCampaignDraft": {
+    "intent": "离开当前草稿并保存（Start Over）",
+    "aliases": [
+      "start over campaign draft",
+      "leave current draft",
+      "离开当前草稿",
+      "重新开始 campaign"
+    ],
+    "rollback": "reversible",
+    "undoneBy": "resumeSavedCampaignDraft",
+    "undoNote": "resumeSavedCampaignDraft 从 Saved draft 卡片恢复",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "composer-visible",
+      "saved-draft-visible"
+    ],
+    "verification": "reviewed"
+  },
+  "startWalletCheckout": {
+    "intent": "输入金额创建 Stripe 充值结账",
+    "rollback": "irreversible",
+    "undoNote": "创建 Stripe Checkout session，不能撤销（会自行过期）"
+  },
+  "submitBrandResearch": {
+    "intent": "onboarding 提交网站做品牌调研",
+    "rollback": "irreversible",
+    "undoNote": "启动一次品牌调研，没有撤回 Action"
+  },
+  "submitCampaignGoal": {
+    "intent": "输入目标创建 Campaign 草稿",
+    "aliases": [
+      "create campaign draft",
+      "submit campaign goal",
+      "生成 campaign 草稿",
+      "输入 campaign 目标"
+    ],
+    "rollback": "irreversible",
+    "undoNote": "创建持久草稿并启动一次 Agent 生成；startOverCampaignDraft 只是把它存起来，不会撤销",
+    "args": 1,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization",
+      "goal composer visible"
+    ],
+    "inputs": [
+      "goal text (one plain line, 8-300 chars)"
+    ],
+    "providedFacts": [
+      "draft-started"
+    ],
+    "verification": "reviewed"
+  },
+  "submitCampaignLaunch": {
+    "intent": "提交 Campaign launch",
+    "rollback": "irreversible",
+    "undoNote": "launch 预留钱包金额并进入审核；没有撤回 Action，失败先只读核对"
+  },
+  "submitDeferredSignUpPassword": {
+    "intent": "注册流程中补填密码",
+    "rollback": "irreversible",
+    "undoNote": "推进注册，没有撤回 Action",
+    "denied": "参数是秘密（密码/验证码/卡号），--args-json 会进 shell 历史与进程列表；见 SHARED_ACTION_DENYLIST"
+  },
+  "submitOnboardingCreativeGeneration": {
+    "intent": "onboarding 开始生成广告",
+    "rollback": "irreversible",
+    "undoNote": "启动广告生成，没有撤回 Action"
+  },
+  "submitOnboardingQuestions": {
+    "intent": "onboarding 提交问卷生成 Campaign",
+    "rollback": "irreversible",
+    "undoNote": "启动 Campaign 生成，没有撤回 Action"
+  },
+  "submitSignInIdentifier": {
+    "intent": "登录时提交邮箱",
+    "rollback": "reversible",
+    "undoneBy": "openSignInForm",
+    "undoNote": "openSignInForm 重开登录页即放弃这次登录尝试"
+  },
+  "submitSignInPassword": {
+    "intent": "登录时提交密码",
+    "rollback": "reversible",
+    "undoneBy": "signOutAccount",
+    "undoNote": "signOutAccount 退出这次登录",
+    "denied": "参数是秘密（密码/验证码/卡号），--args-json 会进 shell 历史与进程列表；见 SHARED_ACTION_DENYLIST"
+  },
+  "submitSignInSecondFactor": {
+    "intent": "登录时提交二次验证码",
+    "rollback": "reversible",
+    "undoneBy": "signOutAccount",
+    "undoNote": "signOutAccount 退出这次登录",
+    "denied": "参数是秘密（密码/验证码/卡号），--args-json 会进 shell 历史与进程列表；见 SHARED_ACTION_DENYLIST"
+  },
+  "submitSignUpCredentials": {
+    "intent": "提交注册邮箱和密码",
+    "rollback": "irreversible",
+    "undoNote": "发起注册并发送验证码，没有撤回 Action",
+    "denied": "参数是秘密（密码/验证码/卡号），--args-json 会进 shell 历史与进程列表；见 SHARED_ACTION_DENYLIST"
+  },
+  "submitSignUpVerificationCode": {
+    "intent": "提交注册验证码完成注册",
+    "rollback": "irreversible",
+    "undoNote": "创建账号，没有删除账号的 Action",
+    "denied": "参数是秘密（密码/验证码/卡号），--args-json 会进 shell 历史与进程列表；见 SHARED_ACTION_DENYLIST"
+  },
+  "submitWalletPayment": {
+    "intent": "提交 Stripe 银行卡付款",
+    "rollback": "irreversible",
+    "undoNote": "付款不能撤回；超时记 action_unknown，不重复提交",
+    "denied": "只完成 prepareWalletCardPayment 用 --args-json 卡号填好的结账；改用 Computer Use 付款或 adminTopUpOrganization 充值；见 SHARED_ACTION_DENYLIST"
+  },
+  "switchDraftBackFromTraffic": {
+    "intent": "把草稿从 Traffic 切回原目标",
+    "aliases": [
+      "switch back from traffic",
+      "Switch Back to Sales",
+      "Switch Back to Signups",
+      "切回原 goal"
+    ],
+    "rollback": "reversible",
+    "undoneBy": "confirmSwitchToTraffic",
+    "undoNote": "先 openSwitchToTrafficDialog 打开弹窗，再 confirmSwitchToTraffic",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer",
+      "tracking-card"
+    ],
+    "states": [
+      "traffic"
+    ],
+    "preconditions": [
+      "draft running as Traffic after a switch in this page session"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "tracking-card-state",
+      "campaign-goal",
+      "campaign-type",
+      "campaign-bidding"
+    ],
+    "verification": "reviewed"
+  },
+  "uploadStudioReference": {
+    "intent": "Studio 上传一张参考图并读回它在参考图行被选中",
+    "aliases": [
+      "upload a Studio reference image",
+      "上传参考图"
+    ],
+    "rollback": "irreversible",
+    "undoNote": "图片经 importCreativeImage 存到后端，成为本组织的一条 creative job，页面没有删除入口；页面上的选中可再点该卡取消或用 reopenStudioProductBrief 清空，但已上传的图不会被删除"
+  },
+  "waitForCampaignDraft": {
+    "intent": "等待草稿生成完成",
+    "aliases": [
+      "wait for campaign draft",
+      "等待草稿生成"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "campaign draft generating or ready"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "readiness-summary"
+    ],
+    "verification": "reviewed"
+  },
+  "waitForMetaCampaignDraft": {
+    "intent": "等待 Meta 草稿生成完成或被品牌资料阻塞",
+    "rollback": "read"
+  },
+  "waitForOnboardingBrandReview": {
+    "intent": "等待 onboarding 品牌调研结果",
+    "rollback": "read"
+  },
+  "waitForOnboardingEntry": {
+    "intent": "等待 onboarding 入口页出现",
+    "rollback": "read"
+  },
+  "submitCampaignGoalFromChip": {
+    "intent": "点击快捷目标 chip 创建 Campaign 草稿",
+    "aliases": [
+      "click quick goal chip",
+      "create campaign draft from quick goal",
+      "点击快捷目标",
+      "点快捷目标 chip 起草",
+      "Get more sales chip"
+    ],
+    "rollback": "irreversible",
+    "undoNote": "创建持久草稿并启动一次 Agent 生成；startOverCampaignDraft 只是把它存起来，不会撤销",
+    "args": 1,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization",
+      "goal composer visible with the quick-goal chip"
+    ],
+    "inputs": [
+      "chip label (exact visible text, e.g. Get more sales / Drive more signups)"
+    ],
+    "providedFacts": [
+      "draft-started"
+    ],
+    "verification": "candidate"
+  },
+  "renameCampaignDraft": {
+    "intent": "改草稿名称（展开 Details 填 Name）",
+    "aliases": [
+      "rename campaign draft",
+      "rename draft",
+      "set campaign name",
+      "给草稿改名",
+      "展开 Details 改名"
+    ],
+    "rollback": "reversible",
+    "undoneBy": "renameCampaignDraft",
+    "undoNote": "事实返回 previousName；再调一次本 Action 传回 previousName 即改回",
+    "args": 1,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization",
+      "campaign draft open with its Details panel"
+    ],
+    "inputs": [
+      "new campaign name (one plain line, up to 255 chars)"
+    ],
+    "providedFacts": [
+      "campaign-name",
+      "previous-campaign-name"
+    ],
+    "verification": "candidate"
+  },
+  "uploadCreativeImage": {
+    "intent": "在 Studio Upload your own 流程上传一张素材图片",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "重新调用并传入不同文件，或离开未保存的上传页即可丢弃；保存前不写入后端"
+  },
+  "readCreativeUploadError": {
+    "intent": "读取 Studio 上传图片的校验失败提示文案",
+    "rollback": "read"
+  },
+  "saveCreativeUploadOnce": {
+    "intent": "提交 Studio Upload your own 的两张图片，创建素材集",
+    "rollback": "irreversible",
+    "undoNote": "保存成功后生成的素材集需要单独用 irreversible 的 deleteCreativeSetOnce 清理；没有专门撤销“保存”这一步本身的 Action"
+  },
+  "fillCreativeCopyField": {
+    "intent": "在素材文案审核页填写 headline/description/long headline 字段",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "未点击保存前，重新调用覆盖输入内容即可，不产生后端状态"
+  },
+  "readCreativeCopyCounter": {
+    "intent": "读取素材文案字段的字数计数器（当前值/上限）",
+    "rollback": "read"
+  },
+  "readCreativeCopyLimitBanner": {
+    "intent": "读取素材文案超限时的平台提示 banner",
+    "rollback": "read"
+  },
+  "saveCreativeCopyOnce": {
+    "intent": "保存素材集的文案审核结果",
+    "rollback": "irreversible",
+    "undoNote": "文案保存后只能用 irreversible 的 deleteCreativeSetOnce 删除整个素材集来清理，没有单独撤销文案保存的 Action"
+  },
+  "retryCreativeCopyOnce": {
+    "intent": "重试生成失败的素材文案",
+    "rollback": "irreversible",
+    "undoneBy": null,
+    "undoNote": "重试会触发新一次文案生成，无法回退到重试前的失败状态；只能据此继续走保存或再次重试"
+  },
+  "selectCreativeSetInLibrary": {
+    "intent": "在 Google Search 或 Meta 的素材选择器中选中一个已上传的素材集",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "再次点击同一张卡片或选择另一张卡片即可改变选择，确认前不产生后端状态"
+  },
+  "confirmCreativeSetSelection": {
+    "intent": "在素材选择器中确认已选中的素材集",
+    "rollback": "reversible",
+    "undoneBy": null,
+    "undoNote": "只落在 campaign 草稿本地状态，重新打开选择器换选即可覆盖；不调用后端接口"
+  },
+  "openCreativeSetActionsMenu": {
+    "intent": "打开素材集详情页的 Ad Actions 菜单",
+    "rollback": "read"
+  },
+  "openCreativeSetDeleteConfirmation": {
+    "intent": "打开素材集删除或取消生成的确认弹窗",
+    "rollback": "read"
+  },
+  "deleteCreativeSetOnce": {
+    "intent": "删除素材集或取消正在进行的素材生成",
+    "rollback": "irreversible",
+    "undoneBy": null,
+    "undoNote": "删除/取消后端会真实移除素材集或终止生成任务，确认弹窗文案本身声明 This action can't be undone，没有撤销 Action"
+  },
+  "pollCreativeSetGenerationOutcome": {
+    "intent": "轮询一次素材生成任务直到达到终态或超时，读取耗时",
+    "rollback": "read"
+  },
+  "measureCreativeGenerationSuccessRate": {
+    "intent": "批量轮询多个素材生成任务，统计成功率与超时情况",
+    "rollback": "read"
+  },
+  "openCampaignCreateCard": {
+    "intent": "打开 Create 卡片选平台和类型",
+    "aliases": [
+      "open create card",
+      "点击 Create 入口"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization",
+      "goal screen Create tile visible"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "campaign-create-card-opened"
+    ],
+    "verification": "candidate"
+  },
+  "selectCampaignCreatePlatform": {
+    "intent": "Create 卡片内切换 Google/Meta 平台",
+    "aliases": [
+      "select create platform",
+      "切换 Create 平台"
+    ],
+    "rollback": "read",
+    "args": 1,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization",
+      "Create card open"
+    ],
+    "inputs": [
+      "platform (google | meta)"
+    ],
+    "providedFacts": [
+      "campaign-create-platform"
+    ],
+    "verification": "candidate"
+  },
+  "observeCampaignCreateTypes": {
+    "intent": "读取 Create 卡片当前平台下的 campaign 类型列表",
+    "aliases": [
+      "read create types",
+      "读取 Create 类型列表"
+    ],
+    "rollback": "read",
+    "args": 0,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization",
+      "Create card open"
+    ],
+    "inputs": [],
+    "providedFacts": [
+      "campaign-create-types"
+    ],
+    "verification": "candidate"
+  },
+  "chooseCampaignCreateType": {
+    "intent": "Create 卡片内选择一个 campaign 类型",
+    "aliases": [
+      "choose create type",
+      "选择 Create 类型卡片"
+    ],
+    "rollback": "irreversible",
+    "undoNote": "单一 method 的类型（Awareness/App installs）点击即创建持久草稿并启动一次 Agent 生成，与 submitCampaignGoalFromChip 相同；startOverCampaignDraft 只是把它存起来，不会撤销。多 method 的类型（Traffic/Leads/Conversions）点击只展开折叠，不产生副作用，但同一 Action 的副作用上限按前者定级。",
+    "args": 1,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization",
+      "Create card open",
+      "typeId present in observeCampaignCreateTypes for the active platform"
+    ],
+    "inputs": [
+      "typeId (branding | traffic | leads | conversions | apps)"
+    ],
+    "providedFacts": [
+      "draft-started"
+    ],
+    "verification": "candidate"
+  },
+  "chooseCampaignCreateMethod": {
+    "intent": "展开的类型折叠内选择一个具体 method",
+    "aliases": [
+      "choose create method",
+      "选择 Create method 行"
+    ],
+    "rollback": "irreversible",
+    "undoNote": "创建持久草稿并启动一次 Agent 生成，与 submitCampaignGoalFromChip 相同；startOverCampaignDraft 只是把它存起来，不会撤销。",
+    "args": 1,
+    "surfaces": [
+      "dashboard"
+    ],
+    "roles": [
+      "user"
+    ],
+    "pages": [
+      "campaign-composer"
+    ],
+    "preconditions": [
+      "signed-in user",
+      "active organization",
+      "a multi-method type opened via chooseCampaignCreateType"
+    ],
+    "inputs": [
+      "methodId (google_search | google_pmax | meta_reach | meta_traffic | meta_instant_form | meta_sales | meta_app)"
+    ],
+    "providedFacts": [
+      "draft-started"
+    ],
+    "verification": "candidate"
+  }
+}

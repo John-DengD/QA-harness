@@ -1,5 +1,6 @@
 ---
 id: hellyeah.wallet-payment
+type: module
 product: hellyeah
 surfaces: [customer-dashboard, admin-dashboard, stripe-checkout, api]
 status: pilot
@@ -8,7 +9,7 @@ last_reviewed: 2026-10-13
 related_modules: [hellyeah.auth-organization, hellyeah.campaign-launch]
 ---
 
-# Wallet & Payment
+# Wallet & Payment（钱包与支付）
 
 ## 业务目标与边界
 
@@ -20,14 +21,14 @@ related_modules: [hellyeah.auth-organization, hellyeah.campaign-launch]
 
 ## 来源
 
-| Ref | Source | Role | Applies to | Status |
-|---|---|---|---|---|
-| WALLET-SRC-002 | `sources/hellyeah/business_file/shared/payments/top-up-flow.md` | authority | Top-up lifecycle | current, synced 2026-08-05 |
-| WALLET-SRC-003 | `sources/hellyeah/business_file/shared/payments/refund-flow.md` | authority | Refund lifecycle | current, synced 2026-08-05 |
-| WALLET-SRC-004 | `sources/hellyeah/product-memory.md` | risk | Hellyeah payment judgment | current guidance |
-| WALLET-SRC-005 | `sources/qa-knowledge/domains/payment.md` | risk | Cross-product payment risks | current guidance |
-| WALLET-SRC-006 | `sources/rulings/2026-10-13-wallet-pr1273-reversal.md` (PR #1273 浏览器验收（sandbox pr-1273，SHA `187c1be`）+ 2026-10-13 人工确认) | **authority** | Admin direct credit 冲正 | confirmed 2026-10-13 |
-| WALLET-SRC-007 | `sources/rulings/2026-10-14-wallet-pr1273-audit-concurrency.md` (PR #1273 exp1/exp2 验收（staging `229cd3674`）+ 2026-10-14 QA 负责人裁定（工作台 W-20261014-01、02、10、11、12）) | **authority** | 冲正审计与并发冲正 | confirmed 2026-10-14 |
+| Ref | Source | Role | Status |
+|---|---|---|---|
+| WALLET-S01 | `sources/hellyeah/business_file/shared/payments/top-up-flow.md` — 适用:Top-up lifecycle | authority | current, synced 2026-08-05 |
+| WALLET-S02 | `sources/hellyeah/business_file/shared/payments/refund-flow.md` — 适用:Refund lifecycle | authority | current, synced 2026-08-05 |
+| WALLET-S03 | `sources/hellyeah/product-memory.md` — 适用:Hellyeah payment judgment | risk | current guidance |
+| WALLET-S04 | `sources/qa-knowledge/domains/payment.md` — 适用:Cross-product payment risks | risk | current guidance |
+| WALLET-S05 | `sources/rulings/2026-10-13-wallet-pr1273-reversal.md` (PR #1273 浏览器验收（sandbox pr-1273，SHA `187c1be`）+ 2026-10-13 人工确认) — 适用:Admin direct credit 冲正 | authority | confirmed 2026-10-13 |
+| WALLET-S06 | `sources/rulings/2026-10-14-wallet-pr1273-audit-concurrency.md` (PR #1273 exp1/exp2 验收（staging `229cd3674`）+ 2026-10-14 QA 负责人裁定（工作台 W-20261014-01、02、10、11、12）) — 适用:冲正审计与并发冲正 | authority | confirmed 2026-10-14 |
 
 ## 状态模型
 
@@ -37,7 +38,7 @@ Top-up：`checkout_created → pending → completed | failed`。超时或浏览
 
 Refund：`pending` → `processing` → `completed`，失败为 `failed`（`REFUND_STATUSES`，`packages/shared/src/constants/managed-ads.ts`）。
 
-**Admin direct credit 与冲正**（WALLET-SRC-006，2026-10-13 确认）：
+**Admin direct credit 与冲正**（WALLET-S05，2026-10-13 确认）：
 
 ```
 TOP-UP (source=Admin) ──冲正──> TOP-UP 仍在，状态转 REVERSED
@@ -127,12 +128,12 @@ UI 不展示预计到账时间，这是设计，不判 Bug。
 | WALLET-011 | negative | 提交冲正 | 原因为空时拒绝提交；确认按钮展示**全额**，不支持部分金额 | UI | 空原因提交后的弹窗状态、余额与原记录状态未变 | 前端校验与后端校验文案差异，但两者都拒绝 |
 | WALLET-012 | state_transition | 冲正成功 | 原 top-up **保留**并转为 `REVERSED`，不被删除 | UI + 账本 | 冲正前后同一行的 STATUS 对比 | 列表默认过滤掉 REVERSED（需切换筛选后确认记录仍在） |
 | WALLET-013 | amount_delta | 冲正成功且无并发资金变化 | 新增一条独立 `REVERSAL` 负额记录，可用余额减少额等于原 credit 金额 | 前后事实比较 | before/after 余额、两条记录的金额与 balance 列 | 并发充值/扣款/refund；基线过期 |
-| WALLET-014 | negative | 对已 `REVERSED` 的记录再次冲正 | UI 不提供入口；直接调用接口为**幂等回放**：返回 2xx 且 `alreadyReversed: true`、带回原 REVERSAL 的 transactionId；不产生第二条 REVERSAL、不二次扣款、不新增审计 | UI + API | REVERSED 行无操作入口的截图；接口响应 + 回读账本与审计 | 仅确认按钮隐藏而未验证接口——这种情况只能给 Inconclusive；返回 2xx 本身不是缺陷（2026-10-14 裁定，WALLET-SRC-007） |
+| WALLET-014 | negative | 对已 `REVERSED` 的记录再次冲正 | UI 不提供入口；直接调用接口为**幂等回放**：返回 2xx 且 `alreadyReversed: true`、带回原 REVERSAL 的 transactionId；不产生第二条 REVERSAL、不二次扣款、不新增审计 | UI + API | REVERSED 行无操作入口的截图；接口响应 + 回读账本与审计 | 仅确认按钮隐藏而未验证接口——这种情况只能给 Inconclusive；返回 2xx 本身不是缺陷（2026-10-14 裁定，WALLET-S06） |
 
 | WALLET-015 | negative | 两个 operator 几乎同时冲正同一笔 admin top-up | 只产生一条 `REVERSAL`、只扣一次；败方提示「已冲正」类结果即可（与胜方相同的 `top-up reversed` 也可接受）；审计只记录真正生效的那一次 | 双方接口响应 + 账本 + 审计日志 | 两次请求实际先后到达（非并发），按 WALLET-014 判 |
 | WALLET-016 | eventual | 冲正请求已到达服务端，但浏览器没收到响应（超时 / 断网） | UI 重新拉取交易状态，显示「结果未知」或「已冲正」，不能只显示原始 `Failed to fetch`；余额与该行状态刷新为服务端真实结果，不继续诱导重复提交 | 服务端回读账本 + UI 余额/行状态/提示 + 本 Case 视频 | 请求在发出前就失败（服务端无记录），此时通用失败提示可接受 |
 
-**断言的可用范围**：`WALLET-015`、`WALLET-016` 及 `WALLET-014` 的接口侧来自 WALLET-SRC-007，同样可以单独支撑 ProductFail。`WALLET-010` 至 `WALLET-014` 来自 WALLET-SRC-006（真实浏览器验收 + 2026-10-13 人工确认），**可以单独支撑 ProductFail**。其余 `WALLET-001`–`WALLET-009` 仍受模块 `status: pilot` 限制，失败时需要 ticket、用户确认或其它当前有效证据才能判 ProductFail。
+**断言的可用范围**：`WALLET-015`、`WALLET-016` 及 `WALLET-014` 的接口侧来自 WALLET-S06，同样可以单独支撑 ProductFail。`WALLET-010` 至 `WALLET-014` 来自 WALLET-S05（真实浏览器验收 + 2026-10-13 人工确认），**可以单独支撑 ProductFail**。其余 `WALLET-001`–`WALLET-009` 仍受模块 `status: pilot` 限制，失败时需要 ticket、用户确认或其它当前有效证据才能判 ProductFail。
 
 ## 副作用与恢复
 
@@ -161,8 +162,8 @@ Refund、Campaign cancel 或真实支付不为复现自动重做。需要 Stripe
 - 合理异步窗口内余额尚未更新。
 - `topup_timeout` 后未核对最终 session/transaction。
 - 并发资金变化时只比较余额差，不关联具体交易。
-- 审计日志的 `Admin top-up reversed` 条目只显示金额、不带组织名（对应的 `Wallet credited` 条目带组织名）——**不是 Bug**，现状即预期（WALLET-SRC-007）。
-- 并发冲正的败方收到与胜方相同的成功提示、审计里没有败方的尝试——**不是 Bug**，见 WALLET-015（WALLET-SRC-007）。
+- 审计日志的 `Admin top-up reversed` 条目只显示金额、不带组织名（对应的 `Wallet credited` 条目带组织名）——**不是 Bug**，现状即预期（WALLET-S06）。
+- 并发冲正的败方收到与胜方相同的成功提示、审计里没有败方的尝试——**不是 Bug**，见 WALLET-015（WALLET-S06）。
 
 ## 历史风险与回归探针
 
