@@ -1,0 +1,5 @@
+node_modules
+.env.local
+runs/
+.DS_Store
+.superpowers/
