@@ -21,6 +21,8 @@ async function runCommand(name: string, stages: Stage[], opts: Opts): Promise<vo
   try {
     const needs = [...new Set(stages.flatMap((s) => s.needs))] as SecretName[];
     const b = bootstrap({ configPath: opts.config, needs }); // step 0: doctor
+    const problems = stages.flatMap((st) => st.preflight?.({ config: b.config, env: b.env }) ?? []);
+    if (problems.length) throw new ConfigError(`${name}: cannot start:\n- ${problems.join("\n- ")}`);
     if (!opts.feature) throw new ConfigError("--feature is required");
     if (!opts.runId) throw new ConfigError("--run-id is required");
 

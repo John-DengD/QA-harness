@@ -19,6 +19,8 @@ export type Stage = {
   requires: string[];
   /** True for the stage that creates the run directory. */
   createsRunDir: boolean;
+  /** Optional step-0 check run (for every stage of the command) before anything is created or called. */
+  preflight?(input: { config: Config; env: NodeJS.ProcessEnv }): string[];
   run(ctx: CommandContext): Promise<number>;
 };
 

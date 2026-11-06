@@ -82,14 +82,28 @@ describe("stage commands", () => {
   });
 
   it("each stage checks its own input: review->cases.json, run->cases.reviewed.json, report->results/", () => {
-    const { dir, file } = tmpConfig();
+    const { dir, file } = tmpConfig({ executor: { root: "executor" } });
+    // a minimal executor layout so the run stage's preflight passes and its input check is reached
+    mkdirSync(path.join(dir, "executor", "node_modules"), { recursive: true });
+    mkdirSync(path.join(dir, "qa-env"), { recursive: true });
+    writeFileSync(path.join(dir, "qa-env", ".env.local"), "");
     mkdirSync(path.join(dir, "runs/HEL-1/runs/r1"), { recursive: true });
+    const env = { ...KEYS, E2E_ACCOUNT_EMAIL: "a@b.test", CLERK_PUBLISHABLE_KEY: "pk_test_x", CLERK_SECRET_KEY: "sk_test_x" };
     const want: Record<string, string> = { review: "cases.json", run: "cases.reviewed.json", report: "results" };
     for (const [cmd, art] of Object.entries(want)) {
-      const r = qa(args(cmd, file), KEYS);
+      const r = qa(args(cmd, file), env);
       expect(r.code, cmd).toBe(2);
       expect(r.err, cmd).toContain(art);
     }
+  });
+
+  it("run's preflight names what the executor is missing before anything else", () => {
+    const { dir, file } = tmpConfig();
+    mkdirSync(path.join(dir, "runs/HEL-1/runs/r1"), { recursive: true });
+    const r = qa(args("run", file), KEYS);
+    expect(r.code).toBe(2);
+    expect(r.err).toMatch(/node_modules/);
+    expect(r.err).toMatch(/E2E_ACCOUNT_EMAIL/);
   });
 
   it("design with acceptance.json but no sources.json exits 2 naming sources.json", () => {
@@ -121,11 +135,11 @@ describe("stage commands", () => {
     expect(r.err).toMatch(/--feature/);
   });
 
-  it("all stops at the first stage that returns a failure", () => {
+  it("all runs the run stage's preflight first, so a missing executor setup fails before any LLM call", () => {
     const { file } = tmpConfig();
     const r = qa(args("all", file), KEYS);
     expect(r.code).toBe(2);
-    expect(r.err).toMatch(/--ticket-file/);
+    expect(r.err).toMatch(/node_modules|qa-env|E2E_ACCOUNT_EMAIL|CLERK/);
     expect(r.err).not.toContain("design not implemented");
   });
 

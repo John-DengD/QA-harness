@@ -57,4 +57,24 @@ describe("runRun", () => {
     expect(x.logs).toEqual([]);
     expect(existsSync(path.join(x.runDir, "run-summary.json"))).toBe(true);
   });
+  it("a second run without --force exits 2 naming what exists, before creating any sandbox", async () => {
+    const x = setup([kase("C01", "Case A")]);
+    expect(await runRun(x.c, { runDeps: x.deps, transport: x.transport })).toBe(0);
+    const calls: string[] = [];
+    x.deps.sandbox.create = async () => { calls.push("create"); return { sandboxId: "s" }; };
+    const errs: string[] = []; const spy = console.error; console.error = (m: string) => errs.push(String(m));
+    try { expect(await runRun(x.c, { runDeps: x.deps, transport: x.transport })).toBe(2); } finally { console.error = spy; }
+    expect(errs.join()).toMatch(/results|evidence|run-summary/);
+    expect(calls).toEqual([]);
+  });
+  it("--force clears the earlier run's evidence and results, then runs", async () => {
+    const x = setup([kase("C01", "Case A")]);
+    await runRun(x.c, { runDeps: x.deps, transport: x.transport });
+    writeFileSync(path.join(x.runDir, "evidence", "C01", "stale.txt"), "old");
+    x.c.force = true;
+    expect(await runRun(x.c, { runDeps: x.deps, transport: x.transport })).toBe(0);
+    expect(existsSync(path.join(x.runDir, "evidence", "C01", "stale.txt"))).toBe(false);
+    expect(x.r("results/C01.json").verdict).toBe("Pass");
+    expect(existsSync(path.join(x.runDir, "cases.reviewed.json"))).toBe(true);
+  });
 });
