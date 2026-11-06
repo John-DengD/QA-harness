@@ -87,6 +87,17 @@ describe("secrets", () => {
     expect(process.env.OPENAI_API_KEY).toBe(before);
   });
 
+  it("also reads the executor's qa-env/.env.local, at the lowest priority", () => {
+    const { dir, file } = setup({}, "A=from-dotenv\n");
+    mkdirSync(path.join(dir, "qa-env"));
+    writeFileSync(path.join(dir, "qa-env", ".env.local"), "A=from-qa-env\nE2E_BASE_URL=https://only-in-qa-env.test\n");
+    const cfg = loadConfig({ configPath: file, cwd: dir, env: {} });
+    const env = loadEnvFile(cfg, { B: "from-env" });
+    expect(env.E2E_BASE_URL).toBe("https://only-in-qa-env.test");
+    expect(env.A).toBe("from-dotenv");
+    expect(loadEnvFile(cfg, { A: "from-env" }).A).toBe("from-env");
+  });
+
   it("real environment wins over .env.local", () => {
     const { dir, file } = setup({}, "OPENAI_API_KEY=from-file\n");
     const cfg = loadConfig({ configPath: file, cwd: dir, env: {} });

@@ -78,11 +78,17 @@ export function loadConfig(opts: { configPath?: string; cwd: string; env: NodeJS
   };
 }
 
-/** Real environment wins; a sibling .env.local fills the gaps. Does not mutate process.env. */
+/**
+ * Real environment wins, then <configDir>/.env.local, then <configDir>/qa-env/.env.local (the file the
+ * executor reads, so one file serves both). Does not mutate process.env.
+ */
 export function loadEnvFile(config: Config, env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
-  const file = path.join(config.configDir, ".env.local");
-  const fromFile = existsSync(file) ? dotenv.parse(readFileSync(file)) : {};
-  return { ...fromFile, ...env };
+  const read = (file: string) => (existsSync(file) ? dotenv.parse(readFileSync(file)) : {});
+  return {
+    ...read(path.join(config.configDir, "qa-env", ".env.local")),
+    ...read(path.join(config.configDir, ".env.local")),
+    ...env,
+  };
 }
 
 export function requireSecrets(needs: SecretName[], env: NodeJS.ProcessEnv): void {
