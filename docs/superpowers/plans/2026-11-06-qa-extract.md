@@ -15,7 +15,8 @@
 - Every acceptance atom carries `sourceRef` and a **verbatim `anchor`**; code and PR diff can only produce candidates, never Expected sources (spec §5).
 - Anchor check: normalise whitespace and Markdown marks on both source and anchor, compare in the source's original language; the prompt must say "anchor must be copied from the source, never translated" (spec §4.13).
 - An atom whose anchor is not found is **not written**; the reason is recorded in `extract-report.json` (spec §12, user-confirmed).
-- Environment resolution is mechanical (spec §5, intake-routing §2): expand candidate PRs; **exclude merged PRs**; find the comment containing `<!-- preview-sandbox -->` authored by `github-actions`; status `Sandbox ready` / `Sandbox torn down`; footer SHA must equal the PR head SHA, a short footer SHA counts only if it is a unique prefix of the head SHA; mismatch fails. Sandbox URLs come from the comment, never guessed or constructed. Goal mode uses the configured staging environment.
+- **All environment facts live outside the code, in the Runbook file `runbook/environments.json`** (spec §13): staging URL, the sandbox comment marker, the bot author, the status wording, the labels that introduce each URL, the footer SHA pattern, and the PR repository. Code and `qa-harness.config.json` contain no URL, marker, author name or label literal. Changing a value in that file changes behaviour with no code change.
+- Environment resolution is mechanical (spec §5, intake-routing §2) and applies the rules from that file: expand candidate PRs; **exclude merged PRs**; find the comment carrying the configured marker, authored by the configured bot; classify it by the configured status wording; footer SHA must equal the PR head SHA, a short footer SHA counts only if it is a unique prefix of the head SHA; mismatch fails. Sandbox URLs come from the comment via the configured labels, never guessed or constructed. Goal and ticket-file modes use the staging entry of the file.
 - Never create a sandbox. (Refreshing an existing one with `/sandbox` is allowed by the Runbook but is **not** implemented in this plan; a stale SHA just fails.)
 - Linear via API (`LINEAR_API_KEY`) and PR data via `gh`; `--ticket-file` supplies ticket text offline (spec §4.8).
 - LLM: OpenAI SDK, JSON-Schema structured output, validated by zod before use, `llm.maxRetries` retries, then exit (spec §4.4). The LLM never reads files or env and never sees secrets.
@@ -29,7 +30,8 @@
 2. The anchor differs from the source only by whitespace, line breaks, or Markdown marks (`**`, backticks, list bullets): accepted.
 3. Every candidate PR is merged, or the only comment says `Sandbox torn down`: exit 2 naming the PR, no `env.json` written.
 4. Footer SHA is a short prefix that matches two different PR heads, or matches none: exit 2.
-5. `--ticket-file` given and `LINEAR_API_KEY` empty: works (only `OPENAI_API_KEY` is needed); `--ticket DEV-1` without the key: exit 2 naming the key.
+5. The marker, bot author or staging URL is changed in `runbook/environments.json` only: behaviour follows the file (a comment with the old marker is no longer recognised), and a file with a missing or malformed field fails `qa doctor` naming the field.
+6. `--ticket-file` given and `LINEAR_API_KEY` empty: works (only `OPENAI_API_KEY` is needed); `--ticket DEV-1` without the key: exit 2 naming the key.
 
 ---
 
@@ -90,28 +92,32 @@
 - [ ] **Step 4: Run, expect PASS.**
 - [ ] **Step 5: Commit** — `feat: ticket, Linear and GitHub source loaders`.
 
-### Task 4: Environment resolution
+### Task 4: Environment definition file and resolution
 
 **Files:**
-- Create: `src/env-resolve.ts`, `tests/fixtures/sandbox-comment-ready.md`, `tests/fixtures/sandbox-comment-down.md`, `tests/env-resolve.test.ts`
-- Modify: `src/config.ts` (add optional `staging: { baseUrl }`, default `https://app-staging.hellyeahai.com`), `tests/config.test.ts`
+- Create: `runbook/environments.json`, `src/environments.ts`, `src/env-resolve.ts`, `tests/fixtures/sandbox-comment-ready.md`, `tests/fixtures/sandbox-comment-down.md`, `tests/environments.test.ts`, `tests/env-resolve.test.ts`
+- Modify: `src/runbook.ts` (add `environments.json` to `REQUIRED_FILES`), `tests/runbook.test.ts` (its fixture builder writes the file), `src/contracts/env.ts` (add optional `dashboardUrl`, `adminUrl`, `apiUrl`)
 
 **Interfaces:**
-- Consumes: `PrInfo`, `Env` (from `src/contracts/env.ts`; extend it with `dashboardUrl?`, `adminUrl?`, `apiUrl?` strings, all optional).
-- Produces:
-  - `selectCandidates(prs: PrInfo[]): { open: PrInfo[]; excluded: { pr: PrInfo; reason: string }[] }` (merged and closed PRs excluded with reason)
-  - `parseSandboxComment(body: string): { status: "ready" | "torn_down"; footerSha: string | null; dashboardUrl?: string; adminUrl?: string; apiUrl?: string } | null` (null when the body lacks `<!-- preview-sandbox -->`)
-  - `resolvePrEnv(pr: PrInfo): Env` (finds the bot comment authored by `github-actions` with the marker, takes the **latest** matching one; throws `EnvError` exit 2 when none, when `torn_down`, when the footer SHA is missing, or when the SHA gate fails)
+- Produces in `src/environments.ts`:
+  - `Environments` (zod schema) `= { staging: { baseUrl: string; apiUrl?: string }; prSandbox: { repo: string; marker: string; botAuthor: string; status: { ready: string; tornDown: string }; footerShaPattern: string; urlLabels: { dashboard: string; admin?: string; api?: string } } }`; every `string` is non-empty; `footerShaPattern` must compile as a RegExp with exactly one capture group, checked at load.
+  - `loadEnvironments(runbook: Runbook): Environments` throwing `RunbookError` (exit 2) that names the field path of every violation. `qa doctor` fails through `runbook.ts` because the file is required.
+- Produces in `src/env-resolve.ts` (all take the rules from `Environments`, none holds a literal):
+  - `selectCandidates(prs: PrInfo[]): { open: PrInfo[]; excluded: { pr: PrInfo; reason: string }[] }`
+  - `parseSandboxComment(body: string, rules: Environments["prSandbox"]): { status: "ready" | "torn_down"; footerSha: string | null; dashboardUrl?: string; adminUrl?: string; apiUrl?: string } | null` (null when the body lacks `rules.marker`; URLs are read from the line that follows each configured label)
   - `shaMatches(footerSha: string, headSha: string): boolean` (equal, or `footerSha` is a prefix of `headSha` with at least 7 characters)
-  - `stagingEnv(baseUrl: string): Env` (`kind: "staging"`)
+  - `resolvePrEnv(pr: PrInfo, rules: Environments["prSandbox"]): Env` (latest comment with the marker whose author equals `rules.botAuthor`; throws `EnvError` exit 2 when none, when `torn_down`, when the footer SHA is missing, or when the SHA gate fails; the error names the PR URL)
+  - `stagingEnv(def: Environments["staging"]): Env` (`kind: "staging"`)
   - `class EnvError extends Error { exitCode: 2 }`
+- The initial `runbook/environments.json` is filled from `runbook/QA-models/_workflow/qa-environment.md` §5 (marker, bot author, the two status wordings) and the executor's staging default; any value that document does not give is left to Step 1.
 
-- [ ] **Step 1: Get a real fixture.** Read one recent `<!-- preview-sandbox -->` comment from a Hellyeah PR with `gh pr view <url> --json comments` (read-only) and save its body, with any tokens removed, as `tests/fixtures/sandbox-comment-ready.md`; save a torn-down one as `...-down.md`. If `gh` has no access to the repository, stop and ask the human to paste one; do **not** invent the comment format. The parser regexes are written against these files, not against the Runbook prose.
-- [ ] **Step 2: Write failing tests** — `selectCandidates` excludes MERGED with a reason naming the PR; `parseSandboxComment` returns `ready` with the three URLs and footer SHA for the ready fixture, `torn_down` for the down fixture, `null` for an unrelated comment; `shaMatches("abc1234", "abc1234ff…")` true, an unrelated SHA false, a 6-character prefix false; `resolvePrEnv` returns `Env` with `headSha` set and `baseUrl` equal to the **comment's** dashboard URL (never constructed from the PR number); a comment authored by someone other than `github-actions` is ignored; every failure case in Review Focus 3 and 4 throws `EnvError` naming the PR URL and writes nothing; `stagingEnv` uses the configured URL.
-- [ ] **Step 3: Run, expect FAIL.**
-- [ ] **Step 4: Implement** the functions.
-- [ ] **Step 5: Run, expect PASS.**
-- [ ] **Step 6: Commit** — `feat: mechanical environment resolution with SHA gate`.
+- [ ] **Step 1: Get real values and fixtures.** Read one recent sandbox comment from a Hellyeah PR with `gh pr view <url> --json comments` (read-only), save its body (tokens removed) as `tests/fixtures/sandbox-comment-ready.md` and a torn-down one as `...-down.md`, then fill the remaining fields of `runbook/environments.json` (URL labels, `footerShaPattern`, `repo`) from them. If `gh` has no access, stop and ask the human to paste a comment and the staging URL; do **not** invent the format. The staging URL in the file must be confirmed by the human.
+- [ ] **Step 2: Write failing tests.** `tests/environments.test.ts`: the real `runbook/environments.json` loads; a missing `prSandbox.marker` throws naming `prSandbox.marker`; a `footerShaPattern` without a capture group throws; `loadRunbook` on a runbook without the file throws listing it. `tests/env-resolve.test.ts`: `selectCandidates` excludes MERGED with a reason naming the PR; `parseSandboxComment` returns `ready` with URLs and footer SHA for the ready fixture, `torn_down` for the down fixture, `null` for an unrelated comment; **changing `rules.marker` makes the ready fixture return `null`** (Review Focus 5); `shaMatches` equal true, 7-character prefix true, 6-character prefix false, unrelated false; `resolvePrEnv` returns `baseUrl` equal to the comment's dashboard URL (never built from the PR number) and ignores a matching comment by another author; every failure in Review Focus 3 and 4 throws `EnvError` naming the PR URL; `stagingEnv` uses the file's URL.
+- [ ] **Step 3: Write the boundary test** in `tests/no-env-literals.test.ts`: read every `src/**/*.ts` and assert none contains the strings `preview-sandbox`, `github-actions`, `hellyeahai.com`, `railway.app`, `vercel.app`, or `Sandbox ready`; and that `qa-harness.config.json` contains none of them either.
+- [ ] **Step 4: Run, expect FAIL.**
+- [ ] **Step 5: Implement** `environments.ts`, `env-resolve.ts` and the `REQUIRED_FILES` change.
+- [ ] **Step 6: Run `pnpm test && pnpm tsc --noEmit`.** Expected: PASS, clean.
+- [ ] **Step 7: Commit** — `feat: environment definition file and mechanical resolution`.
 
 ### Task 5: Extraction (LLM proposes, code verifies)
 
@@ -141,10 +147,10 @@
 **Interfaces:**
 - Consumes: Tasks 1–5, `createRunDir`, `writeArtifact`, `requireSecrets`.
 - Produces: `qa extract --feature <f> --run-id <id> (--ticket <LINEAR-ID> | --ticket-file <path> | --pr <url> | --goal <text>) [--force]`. Exactly one of the four inputs is required, otherwise exit 2 naming the choices. Behaviour per input:
-  - `--ticket-file`: source = file; environment = `stagingEnv` (no PR is known), `env.kind = "staging"`.
-  - `--ticket`: needs `LINEAR_API_KEY` (exit 2 naming it when empty); source = Linear issue; PRs linked in the issue text (GitHub PR URLs) are fetched and run through `selectCandidates` and `resolvePrEnv`; no linked PR → `stagingEnv` and the report notes it.
+  - `--ticket-file`: source = file; environment = `stagingEnv(environments.staging)` (no PR is known), `env.kind = "staging"`.
+  - `--ticket`: needs `LINEAR_API_KEY` (exit 2 naming it when empty); source = Linear issue; PRs linked in the issue text (GitHub PR URLs) are fetched and run through `selectCandidates` and `resolvePrEnv`; no linked PR → `stagingEnv(environments.staging)` and the report notes it.
   - `--pr`: source = PR description + author comments; environment via `resolvePrEnv`.
-  - `--goal`: source = the goal text plus `QA-models/hellyeah/core-journeys.md` from the Runbook; environment = `stagingEnv`.
+  - `--goal`: source = the goal text plus `QA-models/hellyeah/core-journeys.md` from the Runbook; environment = `stagingEnv(environments.staging)`.
   - Writes `env.json`, `acceptance.json`, `change-model.json`, `extract-report.json` via `writeArtifact` (all validated). Zero surviving atoms → exit 2 with the dropped reasons printed, `extract-report.json` still written, `acceptance.json` **not** written. Success → exit 0.
   - `LlmError`/`ExternalError` → exit 3; `EnvError`/`ConfigError` → exit 2. Run dir is created before any network call.
   - A `qa extract` exit-0 run must be consumable by `qa design`: `acceptance.json` exists, so Task 5 of the foundation plan's input check passes.
@@ -162,7 +168,8 @@
 ## Self-Review
 
 - **Spec coverage:** §5 extract outputs (`acceptance.json`, `change-model.json`, `env.json`) T5/T6; env resolution rules T4; Linear/`gh`/`--ticket-file` T3; anchor normalisation §4.13 T2; structured output and retries §4.4 T1; §12 division of labour (LLM proposes, code verifies, un-anchored atoms dropped with reasons) T5; exit codes §7 T6. Goal mode source is `core-journeys.md` per §4.14. Not covered: refreshing a stale sandbox with `/sandbox`, PR `pr-spec.json` snapshots with 40-character SHAs, the omission-hook file inventory (all non-goals or later), `qa design` and later stages.
-- **Open item for the human:** the sandbox bot comment format is not documented in the Runbook; Task 4 Step 1 needs one real comment (or a pasted one). Also confirm the default staging URL `https://app-staging.hellyeahai.com` (taken from the executor's config default).
+- **Open item for the human:** the sandbox bot comment format is not documented in the Runbook; Task 4 Step 1 needs one real comment (or a pasted one) to fill `runbook/environments.json`. The staging URL in that file must be confirmed by the human. (The executor, copied verbatim, still defaults its own base URL to the staging host in `executor/playwright.config.ts`; that is executor-internal and out of this plan.)
+- **Boundary:** `tests/no-env-literals.test.ts` keeps environment literals out of `src/` and the config file (spec §13).
 - **Added artifact:** `extract-report.json` is not in spec §5's file list; it is where "record the reason" lands. Later plans (`report`) should read it for the uncovered-atoms section.
 - **Type consistency:** `SourceDoc`/`PrInfo`/`ExternalError` (T3) used in T4–T6; `Env` extended in T4 and written in T6; `ExtractReport` defined in T5 and registered in `run-dir.ts`; `CommandContext.args` added in T6 and used only there.
 - **Proportion:** six tasks, signatures and assertions only; no function bodies.

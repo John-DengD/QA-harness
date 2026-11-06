@@ -261,3 +261,14 @@
 **仍未做:** `README.md`、`_workflow/*` 里对旧路径的叙述性提及。
 
 **SHA 决定(2026-11-06,用户):** `hellyeah-v2` 代码引用不再记录 commit SHA,只写仓库、路径和读取日期;`campaign-composer` 里唯一带 SHA 的一行已去掉。
+
+## 13. 测试环境与访问方式放在外部(用户 2026-11-06 决定)
+
+测试环境的地址、解析方式和访问约定都是外部事实,变化比代码快,放在 Runbook 里,harness 只读取并按其中的规则执行。
+
+- **位置:** `runbook/environments.json`(机器可读,Runbook 的必需文件之一,缺失或字段不合法时 `qa doctor` 失败并指出字段路径);`qa-environment.md` 继续作为给人读的说明。
+- **内容:** staging 地址;PR sandbox 的仓库、bot 评论标记、bot 作者、"ready"与"torn down"的状态文案、各 URL 前面的标签、页脚 SHA 的匹配模式。
+- **harness 的职责:** 读这份文件,按其中的规则找评论、读地址、核对 SHA。代码里没有任何地址、标记或标签的字面量,`qa-harness.config.json` 里也没有(第 6 节配置只放 Runbook 路径、运行目录、模型等 harness 自己的参数)。有测试扫描 `src/` 和配置文件,发现这些字面量就失败。
+- **修改环境约定:** 改 `environments.json` 即可生效,不改代码。
+- **范围说明:** 本节只管 `extract` 要用的环境解析。账号与 fixture 的创建方式、清理方式(现在写在 executor 代码里,如 `campaign-teardown`)也属于外部约定,迁出 executor 的工作留给 `run` 阶段的计划。
+- **对第 6 节的修正:** 之前草稿里设想的配置项 `staging.baseUrl` 取消,改由 `environments.json` 提供。
