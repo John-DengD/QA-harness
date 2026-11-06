@@ -7,6 +7,7 @@ import { CaseReviewFile, CasesReviewedFile } from "./contracts/case-review";
 import { CasesFile } from "./contracts/cases";
 import { ChangeModel } from "./contracts/change-model";
 import { Env } from "./contracts/env";
+import { ExtractReport } from "./contracts/extract-report";
 import { GeneratorsFile } from "./contracts/generators";
 import { CaseResult } from "./contracts/result";
 
@@ -28,6 +29,7 @@ const REGISTRY: Record<string, ZodType> = {
   "acceptance.json": Acceptance,
   "change-model.json": ChangeModel,
   "env.json": Env,
+  "extract-report.json": ExtractReport,
   "cases.json": CasesFile,
   "generators.json": GeneratorsFile,
   "case-review.json": CaseReviewFile,
