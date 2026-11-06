@@ -1,0 +1,6 @@
+{
+  "runbook": { "path": "runbook" },
+  "runRoot": "runs",
+  "executor": { "root": "executor" },
+  "llm": { "model": "REPLACE_WITH_OPENAI_MODEL" }
+}
