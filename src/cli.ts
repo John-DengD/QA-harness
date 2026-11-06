@@ -4,7 +4,7 @@ import path from "node:path";
 import { Command } from "commander";
 import { bootstrap, exitCodeFor } from "./bootstrap";
 import { type SecretName, ConfigError } from "./config";
-import { executeAll, executeStage, STAGES } from "./commands";
+import { ALL_STAGES, executeAll, executeStage, STAGES } from "./commands";
 import type { Stage } from "./commands/types";
 import { createRunDir } from "./run-dir";
 
@@ -75,7 +75,7 @@ for (const stage of STAGES) {
   (stage.name === "extract" ? withInputs(cmd) : stage.name === "design" ? cmd.option("--revise", "regenerate only the cases the review marked revise") : cmd).action((opts: Opts) => runCommand(stage.name, [stage], opts));
 }
 withInputs(withOpts(program.command("all").description("run every stage in order"))).action((opts: Opts) =>
-  runCommand("all", STAGES, opts),
+  runCommand("all", ALL_STAGES, opts),
 );
 
 program.parseAsync(process.argv);

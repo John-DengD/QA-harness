@@ -6,10 +6,14 @@ import { designStage } from "./design";
 import { extractStage } from "./extract";
 import { reportStage } from "./report";
 import { reviewStage } from "./review";
+import { reviewLoopStage } from "./review-loop";
 import { runStage } from "./run";
 import type { CommandContext, Stage } from "./types";
 
 export const STAGES: Stage[] = [extractStage, designStage, reviewStage, runStage, reportStage];
+
+/** `qa all` uses the review stage with the design/review revise loop. */
+export const ALL_STAGES: Stage[] = [extractStage, designStage, reviewLoopStage, runStage, reportStage];
 
 /** Checks the stage's input artifacts, then runs its body. */
 export async function executeStage(stage: Stage, ctx: CommandContext): Promise<number> {
@@ -26,7 +30,7 @@ export async function executeStage(stage: Stage, ctx: CommandContext): Promise<n
  * run, so the report still gets built; anything else non-zero (2, 3, the placeholder 1) aborts.
  * The exit code is the lowest non-zero code seen (spec §7).
  */
-export async function executeAll(ctx: CommandContext, stages: Stage[] = STAGES): Promise<number> {
+export async function executeAll(ctx: CommandContext, stages: Stage[] = ALL_STAGES): Promise<number> {
   const codes: number[] = [];
   for (const stage of stages) {
     const code = await executeStage(stage, ctx);
