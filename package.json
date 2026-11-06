@@ -1,0 +1,25 @@
+{
+  "name": "qa-harness",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.32.1",
+  "bin": { "qa": "./src/cli.ts" },
+  "scripts": {
+    "qa": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "commander": "14.0.0",
+    "dotenv": "17.4.2",
+    "gray-matter": "4.0.3",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "24.3.0",
+    "tsx": "4.20.6",
+    "typescript": "7.0.2",
+    "vitest": "4.1.11"
+  }
+}
