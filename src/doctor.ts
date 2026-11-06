@@ -1,4 +1,5 @@
 import { type Config, ConfigError, requireSecrets, type SecretName } from "./config";
+import { loadEnvironments } from "./environments";
 import { loadRunbook, RunbookError } from "./runbook";
 
 export type DoctorReport = { ok: boolean; problems: string[] };
@@ -7,7 +8,7 @@ export type DoctorReport = { ok: boolean; problems: string[] };
 export function runDoctor(config: Config, needs: SecretName[], env: NodeJS.ProcessEnv): DoctorReport {
   const problems: string[] = [];
   try {
-    loadRunbook(config.runbook.path);
+    loadEnvironments(loadRunbook(config.runbook.path));
   } catch (e) {
     if (e instanceof RunbookError) problems.push(e.message);
     else throw e;

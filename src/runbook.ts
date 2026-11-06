@@ -13,6 +13,7 @@ export class RunbookError extends Error {
 }
 
 export const REQUIRED_FILES = [
+  "environments.json",
   "QA-models/_workflow/qa-environment.md",
   "QA-models/hellyeah/core-journeys.md",
   "references/case-design.md",

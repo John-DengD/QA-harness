@@ -1,3 +1,5 @@
+import { cpSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import type { Config } from "../src/config";
 import { runDoctor } from "../src/doctor";
@@ -25,5 +27,13 @@ describe("runDoctor", () => {
     const r = runDoctor({ ...base, runbook: { path: "/nonexistent" } }, [], {});
     expect(r.ok).toBe(false);
     expect(r.problems[0]).toContain("/nonexistent");
+  });
+  it("reports an invalid environments.json with the field path", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "qa-doc-"));
+    cpSync(path.resolve(__dirname, "../runbook"), root, { recursive: true });
+    writeFileSync(path.join(root, "environments.json"), JSON.stringify({ prSandbox: { botAuthor: "x" } }));
+    const r = runDoctor({ ...base, runbook: { path: root } }, [], {});
+    expect(r.ok).toBe(false);
+    expect(r.problems.join("\n")).toContain("prSandbox.marker");
   });
 });

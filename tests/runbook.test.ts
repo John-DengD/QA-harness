@@ -4,6 +4,7 @@ import path from "node:path";
 import { canSupportProductFail, loadRunbook, REQUIRED_FILES, RunbookError } from "../src/runbook";
 
 const REAL = path.resolve(__dirname, "../runbook");
+const ENVIRONMENTS_JSON = JSON.stringify({ prSandbox: { marker: "<!-- m -->", botAuthor: "bot", status: { ready: "ready", tornDown: "down" }, footerShaPattern: "`([0-9a-f]{7,40})`", urlLabels: { dashboard: "Dashboard" } } });
 
 function fm(status: string, extra = "version: 1\nlast_reviewed: 2026-09-20\n") {
   return `---\nid: hellyeah.x\ntype: module\nproduct: hellyeah\nstatus: ${status}\n${extra}---\n# X\n`;
@@ -14,7 +15,7 @@ function makeRunbook(opts: { skip?: string; moduleStatus?: string; moduleFm?: st
   for (const rel of REQUIRED_FILES) {
     if (rel === opts.skip) continue;
     mkdirSync(path.dirname(path.join(root, rel)), { recursive: true });
-    writeFileSync(path.join(root, rel), rel.endsWith("core-journeys.md") ? fm("draft", "version: 2\nlast_reviewed: 2026-09-20\n") : "text\n");
+    writeFileSync(path.join(root, rel), rel.endsWith("environments.json") ? ENVIRONMENTS_JSON : rel.endsWith("core-journeys.md") ? fm("draft", "version: 2\nlast_reviewed: 2026-09-20\n") : "text\n");
   }
   mkdirSync(path.join(root, "QA-models/hellyeah"), { recursive: true });
   writeFileSync(path.join(root, "QA-models/hellyeah/x.md"), opts.moduleFm ?? fm(opts.moduleStatus ?? "pilot"));

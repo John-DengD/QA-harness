@@ -1,0 +1,9 @@
+{
+  "prSandbox": {
+    "marker": "<!-- preview-sandbox -->",
+    "botAuthor": "github-actions",
+    "status": { "ready": "Sandbox ready", "tornDown": "Sandbox torn down" },
+    "footerShaPattern": "Updated[^`]*`([0-9a-f]{7,40})`",
+    "urlLabels": { "dashboard": "Dashboard", "admin": "Admin", "api": "API" }
+  }
+}
