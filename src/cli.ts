@@ -8,7 +8,7 @@ import { executeAll, executeStage, STAGES } from "./commands";
 import type { Stage } from "./commands/types";
 import { createRunDir } from "./run-dir";
 
-type Opts = { config?: string; feature?: string; runId?: string; force?: boolean };
+type Opts = { config?: string; feature?: string; runId?: string; force?: boolean; ticket?: string; ticketFile?: string; pr?: string; goal?: string };
 
 function fail(e: unknown): void {
   const code = exitCodeFor(e);
@@ -33,7 +33,8 @@ async function runCommand(name: string, stages: Stage[], opts: Opts): Promise<vo
       if (!existsSync(runDir)) throw new ConfigError(`${name}: run directory not found: ${runDir}`);
     }
 
-    const ctx = { config: b.config, runbook: b.runbook, runDir, env: b.env, force: !!opts.force };
+    const { ticket, ticketFile, pr, goal } = opts;
+    const ctx = { config: b.config, runbook: b.runbook, runDir, env: b.env, force: !!opts.force, args: { ticket, ticketFile, pr, goal } };
     process.exitCode = stages.length === 1 ? await executeStage(stages[0]!, ctx) : await executeAll(ctx);
   } catch (e) {
     fail(e);
@@ -62,10 +63,18 @@ const withOpts = (c: Command) =>
     .option("--run-id <id>", "run id")
     .option("--force", "reuse an existing run directory");
 
+const withInputs = (c: Command) =>
+  c
+    .option("--ticket <id>", "Linear issue id (needs LINEAR_API_KEY)")
+    .option("--ticket-file <path>", "ticket text file (offline)")
+    .option("--pr <url>", "GitHub pull request URL")
+    .option("--goal <text>", "test goal text");
+
 for (const stage of STAGES) {
-  withOpts(program.command(stage.name)).action((opts: Opts) => runCommand(stage.name, [stage], opts));
+  const cmd = withOpts(program.command(stage.name));
+  (stage.name === "extract" ? withInputs(cmd) : cmd).action((opts: Opts) => runCommand(stage.name, [stage], opts));
 }
-withOpts(program.command("all").description("run every stage in order")).action((opts: Opts) =>
+withInputs(withOpts(program.command("all").description("run every stage in order"))).action((opts: Opts) =>
   runCommand("all", STAGES, opts),
 );
 

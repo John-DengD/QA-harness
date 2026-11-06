@@ -7,6 +7,8 @@ export type CommandContext = {
   runDir: string;
   env: NodeJS.ProcessEnv;
   force: boolean;
+  /** Stage-specific command-line options (e.g. --ticket-file). */
+  args: Record<string, string | boolean | undefined>;
 };
 
 export type Stage = {

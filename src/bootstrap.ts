@@ -1,6 +1,6 @@
 import { type Config, ConfigError, loadConfig, loadEnvFile, type SecretName } from "./config";
 import { runDoctor } from "./doctor";
-import { loadRunbook, type Runbook, RunbookError } from "./runbook";
+import { loadRunbook, type Runbook } from "./runbook";
 
 export type Bootstrapped = { config: Config; env: NodeJS.ProcessEnv; runbook: Runbook };
 
@@ -14,5 +14,6 @@ export function bootstrap(opts: { configPath?: string; needs: SecretName[] }): B
 }
 
 export function exitCodeFor(e: unknown): number | undefined {
-  return e instanceof ConfigError || e instanceof RunbookError ? e.exitCode : undefined;
+  const code = (e as { exitCode?: unknown } | null)?.exitCode;
+  return typeof code === "number" ? code : undefined;
 }

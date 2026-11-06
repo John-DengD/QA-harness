@@ -102,14 +102,16 @@ describe("stage commands", () => {
     expect(r.err).toContain("design not implemented");
   });
 
-  it("extract creates the run dir, then refuses to reuse it without --force", () => {
+  it("extract without an input option exits 2 naming the four options; the run dir exists afterwards and is not reused without --force", () => {
     const { dir, file } = tmpConfig();
     const first = qa(args("extract", file), KEYS);
-    expect(first.code).toBe(1);
-    expect(first.err).toContain("extract not implemented");
+    expect(first.code).toBe(2);
+    expect(first.err).toMatch(/--ticket.*--ticket-file.*--pr.*--goal/);
     expect(existsSync(path.join(dir, "runs/HEL-1/runs/r1"))).toBe(true);
-    expect(qa(args("extract", file), KEYS).code).toBe(2);
-    expect(qa([...args("extract", file), "--force"], KEYS).code).toBe(1);
+    const second = qa(args("extract", file), KEYS);
+    expect(second.code).toBe(2);
+    expect(second.err).toContain("already exists");
+    expect(qa([...args("extract", file), "--force"], KEYS).err).toMatch(/--ticket-file/);
   });
 
   it("requires --feature and --run-id", () => {
@@ -119,11 +121,11 @@ describe("stage commands", () => {
     expect(r.err).toMatch(/--feature/);
   });
 
-  it("all stops at the first stage that returns non-zero", () => {
+  it("all stops at the first stage that returns a failure", () => {
     const { file } = tmpConfig();
     const r = qa(args("all", file), KEYS);
-    expect(r.code).toBe(1);
-    expect(r.err).toContain("extract not implemented");
+    expect(r.code).toBe(2);
+    expect(r.err).toMatch(/--ticket-file/);
     expect(r.err).not.toContain("design not implemented");
   });
 
