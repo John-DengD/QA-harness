@@ -1,0 +1,16 @@
+{
+  "actions": [
+    "openCampaignComposer",
+    "openCampaignList",
+    "openExistingCampaignDetail",
+    "openCampaignCreativePicker",
+    "observeCampaignLaunchReadiness",
+    "openStudioLibrary",
+    "openStudioCreateSheet",
+    "readStudioProductBrief",
+    "openWalletTopUp",
+    "readWalletBalanceAndTransactions",
+    "openForcedOnboarding",
+    "selectOrganization"
+  ]
+}

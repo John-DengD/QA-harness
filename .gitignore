@@ -3,3 +3,7 @@ node_modules
 runs/
 .DS_Store
 .superpowers/
+executor/playwright-report
+executor/midscene_run
+executor/test-results
+qa-env/.env.local

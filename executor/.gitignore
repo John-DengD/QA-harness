@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.local
+.env.infra.local
+playwright-report/
+test-results/
+midscene_run/
+report-bundle/
+coverage/
+.DS_Store
+.next/
+.vercel/
+*.tsbuildinfo
+.env.local.bak-*
+.qa-runs/
