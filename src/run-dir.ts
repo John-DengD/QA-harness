@@ -41,6 +41,8 @@ const REGISTRY: Record<string, ZodType> = {
 function schemaFor(name: string): ZodType {
   const fixed = REGISTRY[name];
   if (fixed) return fixed;
+  if (/^cases\.v\d+\.json$/.test(name)) return CasesFile;
+  if (/^case-review\.v\d+\.json$/.test(name)) return CaseReviewFile;
   if (/^results\/[a-zA-Z0-9][a-zA-Z0-9._-]*\.json$/.test(name)) return CaseResult;
   throw new Error(`unknown artifact: ${name}`);
 }

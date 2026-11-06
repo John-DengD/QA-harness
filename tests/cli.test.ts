@@ -92,14 +92,14 @@ describe("stage commands", () => {
     }
   });
 
-  it("design with its input present reaches the stage body: exit 1 'not implemented'", () => {
+  it("design with acceptance.json but no sources.json exits 2 naming sources.json", () => {
     const { dir, file } = tmpConfig();
     const rd = path.join(dir, "runs/HEL-1/runs/r1");
     mkdirSync(rd, { recursive: true });
     writeFileSync(path.join(rd, "acceptance.json"), "{}");
     const r = qa(args("design", file), KEYS);
-    expect(r.code).toBe(1);
-    expect(r.err).toContain("design not implemented");
+    expect(r.code).toBe(2);
+    expect(r.err).toContain("sources.json");
   });
 
   it("extract without an input option exits 2 naming the four options; the run dir exists afterwards and is not reused without --force", () => {

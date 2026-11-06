@@ -12,6 +12,6 @@ export const GeneratorsFile = z.object({
     }),
   ),
   candidatePool: z.array(z.object({ mechanism: z.string(), why: z.string() })),
-  trimmed: z.array(z.object({ caseId: z.string(), reason: z.string().min(1) })),
+  trimmed: z.array(z.object({ title: z.string(), reason: z.string().min(1) })),
 });
 export type GeneratorsFile = z.infer<typeof GeneratorsFile>;

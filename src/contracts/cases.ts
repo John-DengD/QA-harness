@@ -25,3 +25,7 @@ export type Case = z.infer<typeof Case>;
 
 export const CasesFile = z.object({ cases: z.array(Case) });
 export type CasesFile = z.infer<typeof CasesFile>;
+
+/** A case as proposed by the model: the id is assigned by code. */
+export const CaseDraft = Case.omit({ id: true });
+export type CaseDraft = z.infer<typeof CaseDraft>;

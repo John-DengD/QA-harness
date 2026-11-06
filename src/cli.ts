@@ -8,7 +8,7 @@ import { executeAll, executeStage, STAGES } from "./commands";
 import type { Stage } from "./commands/types";
 import { createRunDir } from "./run-dir";
 
-type Opts = { config?: string; feature?: string; runId?: string; force?: boolean; ticket?: string; ticketFile?: string; pr?: string; goal?: string };
+type Opts = { config?: string; feature?: string; runId?: string; force?: boolean; ticket?: string; ticketFile?: string; pr?: string; goal?: string; revise?: boolean };
 
 function fail(e: unknown): void {
   const code = exitCodeFor(e);
@@ -33,8 +33,8 @@ async function runCommand(name: string, stages: Stage[], opts: Opts): Promise<vo
       if (!existsSync(runDir)) throw new ConfigError(`${name}: run directory not found: ${runDir}`);
     }
 
-    const { ticket, ticketFile, pr, goal } = opts;
-    const ctx = { config: b.config, runbook: b.runbook, runDir, env: b.env, force: !!opts.force, args: { ticket, ticketFile, pr, goal } };
+    const { ticket, ticketFile, pr, goal, revise } = opts;
+    const ctx = { config: b.config, runbook: b.runbook, runDir, env: b.env, force: !!opts.force, args: { ticket, ticketFile, pr, goal, revise } };
     process.exitCode = stages.length === 1 ? await executeStage(stages[0]!, ctx) : await executeAll(ctx);
   } catch (e) {
     fail(e);
@@ -72,7 +72,7 @@ const withInputs = (c: Command) =>
 
 for (const stage of STAGES) {
   const cmd = withOpts(program.command(stage.name));
-  (stage.name === "extract" ? withInputs(cmd) : cmd).action((opts: Opts) => runCommand(stage.name, [stage], opts));
+  (stage.name === "extract" ? withInputs(cmd) : stage.name === "design" ? cmd.option("--revise", "regenerate only the cases the review marked revise") : cmd).action((opts: Opts) => runCommand(stage.name, [stage], opts));
 }
 withInputs(withOpts(program.command("all").description("run every stage in order"))).action((opts: Opts) =>
   runCommand("all", STAGES, opts),
