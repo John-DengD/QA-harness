@@ -12,7 +12,7 @@ import type { RunDeps } from "../src/run/types";
 import { loadRunbook } from "../src/runbook";
 
 const TICKET = "# Banner\n\n- Saving shows a banner\n- The banner disappears after 5 seconds\n- Guests cannot save\n";
-const SECRET = "sk-openai-secret-value-123456";
+const SECRET = "fake-openai-secret-value-123456";
 const PASS = { suites: [{ specs: [{ tests: [{ results: [{ status: "passed" }] }] }] }] };
 const FAIL = { suites: [{ specs: [{ tests: [{ results: [{ status: "failed", error: { message: "expect(locator).toHaveText(x) failed" } }] }] }] }] };
 
