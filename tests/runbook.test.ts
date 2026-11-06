@@ -51,6 +51,25 @@ describe("loadRunbook", () => {
     expect(() => loadRunbook(makeRunbook({ moduleFm: fm("pilot", "last_reviewed: 2026-09-20\n") }))).toThrow(/x\.md/);
   });
 
+  it("names the file when the YAML itself is malformed (no crash, no stack)", () => {
+    const root = makeRunbook({ moduleFm: "---\nid: hellyeah.x\nstatus: [unclosed\nversion: 1\n---\n# X\n" });
+    try {
+      loadRunbook(root);
+      throw new Error("should have thrown");
+    } catch (e) {
+      expect(e).toBeInstanceOf(RunbookError);
+      expect((e as Error).message).toContain("x.md");
+    }
+  });
+
+  it("reports every bad module in one pass", () => {
+    const root = makeRunbook({ moduleStatus: "wip" });
+    writeFileSync(path.join(root, "QA-models/hellyeah/y.md"), "---\nstatus: [unclosed\n---\n");
+    const msg = (() => { try { loadRunbook(root); return ""; } catch (e) { return (e as Error).message; } })();
+    expect(msg).toContain("x.md");
+    expect(msg).toContain("y.md");
+  });
+
   it("lists every missing required file", () => {
     const root = makeRunbook({ skip: "references/verdicts.md" });
     try {

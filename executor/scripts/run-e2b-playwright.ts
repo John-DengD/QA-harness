@@ -1,3 +1,4 @@
+import path from "node:path";
 import { Sandbox } from "@e2b/desktop";
 import { spawn } from "node:child_process";
 
@@ -17,7 +18,7 @@ async function main(): Promise<void> {
   const sandbox = await Sandbox.connect(sandboxId);
   const { endpoint, accessToken } = await discoverPrivateCdp(sandbox);
   const child = spawn("pnpm", ["exec", "playwright", "test", ...caseArgs], {
-    cwd: process.cwd(),
+    cwd: path.resolve(import.meta.dirname, ".."),
     env: {
       ...process.env,
       E2E_CDP_ACCESS_TOKEN: accessToken,

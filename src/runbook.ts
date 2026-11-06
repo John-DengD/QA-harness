@@ -55,10 +55,16 @@ export function loadRunbook(dir: string): Runbook {
   const files = existsSync(modDir) ? readdirSync(modDir).filter((f) => f.endsWith(".md")).sort() : [];
   for (const f of files) {
     const full = path.join(modDir, f);
-    const data = matter(readFileSync(full, "utf8")).data;
+    const rel = path.relative(root, full);
+    let data: Record<string, unknown>;
+    try {
+      data = matter(readFileSync(full, "utf8")).data;
+    } catch (e) {
+      problems.push(`unreadable frontmatter in ${rel}: ${(e as Error).message.split("\n")[0]}`);
+      continue;
+    }
     if (Object.keys(data).length === 0) continue; // index.md, dashboard-routing.md: not modules
     const parsed = frontmatter.safeParse(data);
-    const rel = path.relative(root, full);
     if (!parsed.success) {
       const why = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
       problems.push(`invalid frontmatter in ${rel}: ${why}`);

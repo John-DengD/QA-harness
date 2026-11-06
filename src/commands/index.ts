@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { ConfigError } from "../config";
+import { combineExit, ExitCode } from "../exit-codes";
 import { designStage } from "./design";
 import { extractStage } from "./extract";
 import { reportStage } from "./report";
@@ -20,11 +21,17 @@ export async function executeStage(stage: Stage, ctx: CommandContext): Promise<n
   return stage.run(ctx);
 }
 
-/** qa all: run every stage in order, stop at the first non-zero exit. */
-export async function executeAll(ctx: CommandContext): Promise<number> {
-  for (const stage of STAGES) {
+/**
+ * qa all: run every stage in order. 10 (ProductFail) and 20 (incomplete) are results of a finished
+ * run, so the report still gets built; anything else non-zero (2, 3, the placeholder 1) aborts.
+ * The exit code is the lowest non-zero code seen (spec §7).
+ */
+export async function executeAll(ctx: CommandContext, stages: Stage[] = STAGES): Promise<number> {
+  const codes: number[] = [];
+  for (const stage of stages) {
     const code = await executeStage(stage, ctx);
-    if (code !== 0) return code;
+    codes.push(code);
+    if (code !== 0 && code !== ExitCode.PRODUCT_FAIL && code !== ExitCode.INCOMPLETE) break;
   }
-  return 0;
+  return combineExit(codes);
 }

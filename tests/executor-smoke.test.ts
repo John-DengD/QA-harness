@@ -50,4 +50,22 @@ describe("migrated executor", () => {
     expect(m).toContain("a6c5417");
     expect(m).toContain("uncommitted");
   });
+
+  it("does not carry Computer Use / exploration / lane-merge leftovers", () => {
+    for (const f of ["src/loop/lane-merge.ts", "src/tools/computer-use-contract.ts", "src/tools/computer-use-recording.ts", "src/tools/jev-exploration.ts", "src/tools/schedule.ts"]) {
+      expect(existsSync(path.join(EX, f)), f).toBe(false);
+    }
+  });
+
+  it("MIGRATION.md lists what was kept beyond the spec", () => {
+    const m = readFileSync(path.join(EX, "MIGRATION.md"), "utf8");
+    expect(m).toContain("Kept beyond the spec");
+    expect(m).toContain("release-gate");
+  });
+
+  it("the Playwright runner does not depend on the caller's cwd", () => {
+    const src = readFileSync(path.join(EX, "scripts/run-e2b-playwright.ts"), "utf8");
+    expect(src).not.toContain("cwd: process.cwd()");
+    expect(src).toContain("import.meta.dirname");
+  });
 });

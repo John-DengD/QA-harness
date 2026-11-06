@@ -62,6 +62,19 @@ describe("writeArtifact", () => {
     writeArtifact(dir, "results/C1.json", { caseId: "C1", verdict: "Pass", generated: false, evidenceDir: "e" });
     expect(existsSync(path.join(dir, "results/C1.json"))).toBe(true);
   });
+  it("refuses to overwrite an existing artifact without force, leaving it untouched", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "qa-art-"));
+    writeArtifact(dir, "cases.json", CasesFile.parse({ cases: [goodCase] }));
+    const before = readFileSync(path.join(dir, "cases.json"), "utf8");
+    expect(() => writeArtifact(dir, "cases.json", { cases: [] })).toThrow(/already exists.*cases\.json|cases\.json.*already exists/);
+    expect(readFileSync(path.join(dir, "cases.json"), "utf8")).toBe(before);
+  });
+  it("overwrites with force", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "qa-art-"));
+    writeArtifact(dir, "cases.json", CasesFile.parse({ cases: [goodCase] }));
+    writeArtifact(dir, "cases.json", { cases: [] }, { force: true });
+    expect(JSON.parse(readFileSync(path.join(dir, "cases.json"), "utf8")).cases).toEqual([]);
+  });
   it("refuses unknown artifact names", () => {
     const dir = mkdtempSync(path.join(tmpdir(), "qa-art-"));
     expect(() => writeArtifact(dir, "whatever.json", {})).toThrow(/unknown artifact/);

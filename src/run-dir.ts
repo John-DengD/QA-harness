@@ -41,10 +41,16 @@ function schemaFor(name: string): ZodType {
   throw new Error(`unknown artifact: ${name}`);
 }
 
-/** Validates against the artifact's schema before anything touches disk. */
-export function writeArtifact(runDir: string, name: string, data: unknown): void {
+/**
+ * Validates against the artifact's schema before anything touches disk, and refuses to replace an
+ * existing artifact unless force is set (spec §5: no overwrite without --force).
+ */
+export function writeArtifact(runDir: string, name: string, data: unknown, opts: { force?: boolean } = {}): void {
   const parsed = schemaFor(name).parse(data);
   const file = path.join(runDir, name);
+  if (existsSync(file) && !opts.force) {
+    throw new ConfigError(`artifact already exists (use --force to replace): ${file}`);
+  }
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(file, JSON.stringify(parsed, null, 2) + "\n");
 }
