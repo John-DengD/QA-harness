@@ -283,3 +283,5 @@
 - `qa-sandbox.ts`(建沙箱、按 case 录像、取页面)由 harness 自带,放在 `scripts/executor-extra/`,迁移脚本复制进 `executor/scripts/`;原来这部分在没有迁移的 Computer Use 脚本里。
 - 允许的副作用以 `runbook/authorized-side-effects.json` 为准:`disposable-account`、`campaign-draft`。第 9 节写的"已预先授权的钱包充值"与 `qa-environment.md` 第 6 节矛盾(沙箱到不了支付页),以后者为准,充值类 case 记 Blocked。
 - 沙箱解析的规则放在 `runbook/environments.json`,地址放环境变量 `E2E_BASE_URL`(第 13 节)。
+- 复核后加的约束:`goal:` 来源按 weak 处理(第 4.14 节);锚点至少 10 个字符(含 CJK 时 6 个);生成脚本入库前做静态检查(只能从 `./fixtures` 导入、必须有 `expect(`、恰好一个 `test(`、不能 skip/fixme/only);选择器找不到元素的 `expect` 失败归 Automation failure;`qa run` 和 `qa all` 在开始前预检执行器环境;同一 run-id 重跑需要 `--force`。
+- executor 的 `e2b-shared-browser.ts` 在复制时打补丁,接受 harness 通过 `QA_ALLOWED_ORIGINS` 传入的来源(迁移脚本里有锚点检查)。

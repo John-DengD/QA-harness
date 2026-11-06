@@ -29,7 +29,7 @@ qa extract → qa design → qa review ⇄ qa design --revise → qa run → qa 
    | `OPENAI_API_KEY` | extract / design / review / run(生成脚本) |
    | `E2B_API_KEY` | run(创建沙箱) |
    | `LINEAR_API_KEY` | 只有 `--ticket` 需要 |
-   | `E2E_BASE_URL`(可选 `E2E_API_URL`、`E2E_CONTROL_URL`) | staging 地址;`--ticket-file`、`--goal` 和没有链接 PR 的 `--ticket` 使用。没有默认值 |
+   | `E2E_BASE_URL`(可选 `E2E_API_URL`、`E2E_CONTROL_URL`) | staging 地址;`--ticket-file`、`--goal` 和没有链接 PR 的 `--ticket` 使用。没有默认值。harness 把解析出来的这个地址通过 `QA_ALLOWED_ORIGINS` 告诉 executor(executor 的主机白名单已打补丁接受它) |
    | `E2E_ACCOUNT_EMAIL` `E2E_EMAIL_BASE` `E2E_TEST_PASSWORD` `CLERK_PUBLISHABLE_KEY` `CLERK_SECRET_KEY` `STAGING_E2E_ADMIN_TOKEN` 等 | executor / Playwright 脚本自己读取,见 hy_ui_autotest 的 `qa-env/.env.example` |
 3. Runbook(`runbook/`)是内容,不是代码:`QA-models/`(模块)、`references/`(规则)、`sources/`(外部依赖文件)、`environments.json`(PR sandbox 评论的标记、作者、状态文案、URL 标签、页脚 SHA 模式)、`script-bindings.json`(case 标题到现有 Playwright 脚本的绑定)、`authorized-side-effects.json`(生成脚本允许的副作用)。环境约定变了就改这些文件,不改代码。
 4. `executor/` 是从 linear-browser-qa 迁移来的 Action 和 Playwright 执行器,记录见 [executor/MIGRATION.md](executor/MIGRATION.md)。第一次使用:`cd executor && pnpm install`。
@@ -44,6 +44,12 @@ pnpm qa doctor
 pnpm qa extract --feature DEMO --run-id r1 --ticket-file ./ticket.md      # 先只跑第一步,看 acceptance.json
 pnpm qa all --feature DEMO --run-id r2 --ticket-file ./ticket.md          # 全流程
 ```
+
+## 运行前的检查
+
+每条命令先跑 `qa doctor` 的检查;`qa run` 和 `qa all` 还会在开始任何阶段(包括调 LLM)之前检查执行器:`executor/node_modules` 是否已安装、`qa-env/.env.local` 是否存在、`E2E_ACCOUNT_EMAIL` `CLERK_PUBLISHABLE_KEY` `CLERK_SECRET_KEY` 是否设置。缺什么会一次性列出来,退出码 2。
+
+`qa run` 对同一个 run-id 再跑时,如果目录里已有上一次的 `results/`、`evidence/`、`generated-specs/`、`run-summary.json`,会退出并要求加 `--force`;加了 `--force` 只清掉这四项再重跑。
 
 ## 退出码
 
@@ -60,6 +66,7 @@ pnpm qa all --feature DEMO --run-id r2 --ticket-file ./ticket.md          # 全�
 - **生成的 Playwright 脚本的一次通过率没有数据**(设计文档第 9 节要求先量出来)。生成脚本的断言失败一律记 Inconclusive。
 - 现有脚本的匹配只有 `script-bindings.json` 里的精确标题绑定,目前是空的;`action:select` 的意图匹配没有接入,所以几乎所有 case 都会走脚本生成。
 - 过期的 PR sandbox 不会自动用 `/sandbox` 评论刷新,SHA 落后就直接失败。
+- `--goal` 模式下,用户给的目标文字被当作指令而不是 Expected 出处;`core-journeys.md` 目前是 draft,所以 goal 模式的失败最多是 Inconclusive,不会是 ProductFail。
 - 副作用动作超时后的 `action_unknown` 规则没有强制执行,只在生成脚本的提示词里要求"不要盲目重试"。
 - 没有 `qa script` 单独命令,没有 `--publish`(发布到 artifact.cafe)。
 - `executor/` 保留了设计文档说不迁移的几个文件(checker、omission 等,因为 `state.ts` 引用它们)和 14 个设计之外的维护脚本,见 MIGRATION.md。
