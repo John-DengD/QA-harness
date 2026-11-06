@@ -1,0 +1,4 @@
+{
+  "authorized": ["disposable-account", "campaign-draft"],
+  "notes": "Side effects a generated script may perform. Taken from QA-models/_workflow/qa-environment.md: disposable accounts (user-authorised 2026-09-22) and drafting a campaign without launching or spending. Wallet top-up is NOT listed: the sandbox cannot reach the payment page (qa-environment.md section 6). Anything else is Blocked."
+}

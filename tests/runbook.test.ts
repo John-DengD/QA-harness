@@ -15,7 +15,7 @@ function makeRunbook(opts: { skip?: string; moduleStatus?: string; moduleFm?: st
   for (const rel of REQUIRED_FILES) {
     if (rel === opts.skip) continue;
     mkdirSync(path.dirname(path.join(root, rel)), { recursive: true });
-    writeFileSync(path.join(root, rel), rel.endsWith("environments.json") ? ENVIRONMENTS_JSON : rel.endsWith("core-journeys.md") ? fm("draft", "version: 2\nlast_reviewed: 2026-09-20\n") : "text\n");
+    writeFileSync(path.join(root, rel), rel.endsWith("environments.json") ? ENVIRONMENTS_JSON : rel.endsWith("script-bindings.json") ? "{\"bindings\":[]}" : rel.endsWith("authorized-side-effects.json") ? "{\"authorized\":[]}" : rel.endsWith("core-journeys.md") ? fm("draft", "version: 2\nlast_reviewed: 2026-09-20\n") : "text\n");
   }
   mkdirSync(path.join(root, "QA-models/hellyeah"), { recursive: true });
   writeFileSync(path.join(root, "QA-models/hellyeah/x.md"), opts.moduleFm ?? fm(opts.moduleStatus ?? "pilot"));
