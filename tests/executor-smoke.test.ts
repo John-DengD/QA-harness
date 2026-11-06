@@ -68,4 +68,9 @@ describe("migrated executor", () => {
     expect(src).not.toContain("cwd: process.cwd()");
     expect(src).toContain("import.meta.dirname");
   });
+
+  it("carries the harness patch that lets the harness name the allowed origin", () => {
+    expect(readFileSync(path.join(EX, "src/tools/e2b-shared-browser.ts"), "utf8")).toContain("QA_ALLOWED_ORIGINS");
+    expect(existsSync(path.join(EX, "tests/unit/e2b-shared-browser-origins.test.ts"))).toBe(true);
+  });
 });

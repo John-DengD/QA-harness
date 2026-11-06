@@ -10,6 +10,13 @@ import type { PlaywrightRunner, RunRegistry, SandboxDriver } from "./types";
 const SECRETISH = /KEY|SECRET|TOKEN|PASSWORD/i;
 const secretsOf = (env: NodeJS.ProcessEnv) => Object.entries(env).filter(([k, v]) => SECRETISH.test(k) && v).map(([, v]) => v!);
 const withQaRoot = (env: NodeJS.ProcessEnv, qaRoot: string): NodeJS.ProcessEnv => ({ ...env, QA_ROOT: qaRoot });
+const originOf = (u: string): string | undefined => {
+  try {
+    return new URL(u).origin;
+  } catch {
+    return undefined;
+  }
+};
 const ident = (s: string) => s.replace(/[^A-Za-z0-9._-]/g, "-").replace(/^[^A-Za-z0-9]+/, "x").slice(0, 120) || "x";
 
 function lastJson(stdout: string): any {
@@ -30,14 +37,18 @@ function failure(what: string, r: { code: number; stdout: string; stderr: string
 }
 
 export function makeSandboxDriver(opts: { executorRoot: string; qaRoot: string; env: NodeJS.ProcessEnv; exec: ExecLike }): SandboxDriver {
-  const run = async (what: string, args: string[]) => {
-    const r = await opts.exec("pnpm", ["exec", "tsx", "scripts/qa-sandbox.ts", ...args], { cwd: opts.executorRoot, env: withQaRoot(opts.env, opts.qaRoot) });
+  const run = async (what: string, args: string[], origin?: string) => {
+    const base = withQaRoot(opts.env, opts.qaRoot);
+    // The executor only drives origins it is told about; the harness resolved this one itself (spec §13).
+    const allowed = origin ? originOf(origin) : undefined;
+    const env = allowed ? { ...base, QA_ALLOWED_ORIGINS: allowed } : base;
+    const r = await opts.exec("pnpm", ["exec", "tsx", "scripts/qa-sandbox.ts", ...args], { cwd: opts.executorRoot, env });
     if (r.code !== 0) throw failure(`sandbox ${what}`, r, opts.env);
     return lastJson(r.stdout);
   };
   return {
     async create({ url }) {
-      const j = await run("create", ["create", "--url", url]);
+      const j = await run("create", ["create", "--url", url], url);
       if (typeof j.sandboxId !== "string") throw new Error("sandbox create returned no sandboxId");
       return { sandboxId: j.sandboxId };
     },
@@ -49,7 +60,7 @@ export function makeSandboxDriver(opts: { executorRoot: string; qaRoot: string; 
       return { videoPath: String(j.video), bytes: Number(j.bytes) };
     },
     async snapshot(id, origin) {
-      const j = await run("snapshot", ["snapshot", "--sandbox-id", id, "--origin", origin]);
+      const j = await run("snapshot", ["snapshot", "--sandbox-id", id, "--origin", origin], origin);
       return `URL: ${j.url}\nTitle: ${j.title}\n\n${j.snapshot}`;
     },
     async kill(id) {

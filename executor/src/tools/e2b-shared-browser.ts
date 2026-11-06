@@ -13,6 +13,8 @@ export function targetOrigin(value: string): string {
   ]);
   const preview = /^hellyeah-(dashboard|admin)-[a-z0-9-]+-final-round-ai\.vercel\.app$/;
   const local = new Set(["localhost", "127.0.0.1", "[::1]"]);
+  const extra = (process.env.QA_ALLOWED_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean);
+  if (extra.includes(url.origin)) return url.origin;
   if (!(url.protocol === "https:" && (staging.has(url.hostname) || preview.test(url.hostname))) &&
       !(local.has(url.hostname) && (url.protocol === "http:" || url.protocol === "https:"))) {
     throw new Error("Shared browser target must be a known Hellyeah test origin");

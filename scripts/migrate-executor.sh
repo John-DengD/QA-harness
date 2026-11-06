@@ -42,6 +42,20 @@ const fs=require("fs"),p=process.argv[1];const j=JSON.parse(fs.readFileSync(p,"u
 j.scripts["qa:sandbox"]="tsx scripts/qa-sandbox.ts";
 fs.writeFileSync(p,JSON.stringify(j,null,2)+"\n");' "$DST/package.json"
 
+# Origin allow-list: the executor hard-codes which hosts the shared browser may open. The harness resolves the
+# test origin itself and passes it in QA_ALLOWED_ORIGINS; patch the executor to honour that (fails loudly if the
+# executor source changed and the anchor is gone), and carry the test for the patch.
+python3 - "$DST/src/tools/e2b-shared-browser.ts" <<'PY'
+import sys
+p=sys.argv[1]; s=open(p).read()
+anchor='  const local = new Set(["localhost", "127.0.0.1", "[::1]"]);\n'
+assert anchor in s, "e2b-shared-browser.ts changed: update the QA_ALLOWED_ORIGINS patch in scripts/migrate-executor.sh"
+if "QA_ALLOWED_ORIGINS" not in s:
+    s=s.replace(anchor, anchor+'  const extra = (process.env.QA_ALLOWED_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean);\n  if (extra.includes(url.origin)) return url.origin;\n')
+open(p,'w').write(s)
+PY
+cp "$(cd "$(dirname "$0")" && pwd)/executor-extra/e2b-shared-browser-origins.test.ts" "$DST/tests/unit/e2b-shared-browser-origins.test.ts"
+
 # playwright.config.ts needs one small helper from the report app (which is not migrated): keep the helper, repoint the import.
 cp "$SRC/hy_ui_autotest/apps/report/src/runtime-metadata.ts" "$DST/src/report/runtime-metadata.ts"
 sed -i.bak 's#./apps/report/src/runtime-metadata#./src/report/runtime-metadata#' "$DST/playwright.config.ts" && rm "$DST/playwright.config.ts.bak"

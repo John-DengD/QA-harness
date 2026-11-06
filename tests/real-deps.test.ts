@@ -36,6 +36,13 @@ describe("makeSandboxDriver", () => {
     await d.kill("sb1");
     expect(f.calls.map((c) => c.args.slice(3, 5).join(" "))).toEqual(["record-start --sandbox-id", "record-stop --sandbox-id", "snapshot --sandbox-id", "kill --sandbox-id"]);
   });
+  it("create and snapshot tell the executor which origin the harness resolved (QA_ALLOWED_ORIGINS)", async () => {
+    const f = fakeExec((c) => ({ stdout: c.args[3] === "create" ? '{"sandboxId":"sb1"}' : '{"url":"u","title":"t","snapshot":"s"}' }));
+    const d = makeSandboxDriver({ executorRoot: "/ex", qaRoot: "/runs", env, exec: f.exec });
+    await d.create({ url: "https://dashboard-abc.example.test/start" });
+    await d.snapshot("sb1", "https://dashboard-abc.example.test");
+    expect(f.calls.map((c) => c.opts.env!.QA_ALLOWED_ORIGINS)).toEqual(["https://dashboard-abc.example.test", "https://dashboard-abc.example.test"]);
+  });
   it("a failing command throws with stderr and without secret values", async () => {
     const f = fakeExec(() => ({ code: 1, stderr: `boom ${SECRET}` }));
     const err = await makeSandboxDriver({ executorRoot: "/ex", qaRoot: "/runs", env, exec: f.exec }).create({ url: "u" }).catch((e) => e);

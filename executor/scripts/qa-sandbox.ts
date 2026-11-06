@@ -5,7 +5,6 @@
  * page, and kill the sandbox. All results are one JSON object on stdout; errors go to stderr, exit 1.
  */
 import { Sandbox } from "@e2b/desktop";
-import { chmod } from "node:fs/promises";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
@@ -174,4 +173,3 @@ main().catch((e) => {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 });
-void chmod;
