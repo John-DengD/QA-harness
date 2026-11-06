@@ -30,7 +30,7 @@ related_modules: []
 
 - Ref 格式 `<模块前缀>-S<两位序号>`,同一模块只用一个前缀,从 `S01` 连续编号。
 - Role 只能是 `observation`、`risk`、`authority`、`user-confirmed`、`timeline` 五种。同时具备两种性质时取较保守的一种(`risk` 不能单独作为 Expected 出处,`user-confirmed` 可以),并把原来的说法写进 Status。
-- 外部材料放在 `sources/` 下,Source 列写相对 Runbook 根的路径;代码引用写“仓库 + 路径 + commit SHA”,没有 SHA 的写读取日期。没有文件的口头裁定先写成 `sources/rulings/` 下的小文件再引用。
+- 外部材料放在 `sources/` 下,Source 列写相对 Runbook 根的路径;代码引用写“仓库 + 路径”,在 Status 里写读取日期;不记 commit SHA。没有文件的口头裁定先写成 `sources/rulings/` 下的小文件再引用。
 
 ## 状态模型
 

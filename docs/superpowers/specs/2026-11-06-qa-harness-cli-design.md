@@ -201,7 +201,7 @@
 
 **【我的建议】,待用户确认后才动文件**
 - 范围:命名与依赖收拢一起做。迁入 qa-harness 后,外部路径都会失效。
-- 外部依赖:业务文档快照、`product-memory.md`、被引用的 6 份 QA-Knowledge 迁入 `runbook/sources/`;代码引用统一写成"仓库 + 路径 + commit SHA";口头裁定各写成一个小文件放 `sources/rulings/`。
+- 外部依赖:业务文档快照、`product-memory.md`、被引用的 6 份 QA-Knowledge 迁入 `runbook/sources/`;代码引用统一写成"仓库 + 路径 + 读取日期"(用户 2026-11-06 决定不记 commit SHA);口头裁定各写成一个小文件放 `sources/rulings/`。
 - 编号:统一为 `<module 短名>-S<序号>`;出处表列固定为 Ref、Source、Role、Status;Role 取值限定为 5 个。
 - 先产出"旧名到新名"对照表供用户审阅,再改文件。
 
@@ -214,7 +214,7 @@
 - `runbook/sources/rulings/`:8 份裁定文件。PR-1217-K1、K2、K3 逐字摘录自原 `pending-review.md`;其余几份只有模块里的表述,原始记录缺失处已在文件内注明(W-20261014-10、12、13、51 和口述、Slack 原话)。
 - module 的出处表已改写为指向 `sources/`,共 35 个路径,逐个核对均存在。
 
-**尚未做:** 出处编号统一、frontmatter 与章节名统一、文件重命名(用户只确认了外部依赖部分);`hellyeah-v2` 代码引用的 commit SHA 补全(多数引用只有"读取日期",无法从现有材料还原 SHA);`README.md`、`_workflow/*` 中对旧路径的叙述性提及。
+**尚未做:** 出处编号统一、frontmatter 与章节名统一、文件重命名(用户只确认了外部依赖部分);`README.md`、`_workflow/*` 中对旧路径的叙述性提及。
 
 **更正:** 第 11 节中"`product-memory.md` 有两种写法"不准确,`Hellyeah/product-memory.md` 与 `Hellyeah/User-Dashboard-test/product-memory.md` 是内容不同的两份文件。
 
@@ -258,4 +258,6 @@
 
 **更正第 11 节的审计:** "Browser 观察点"与"Page Signals"在模板里是两个独立章节,不是同一类内容的两种叫法,因此没有改。"副作用、Bug 判断与回流"(精简模块)与"副作用与恢复"加"Bug 判断知识"(完整模块)是两种写法,精简模块的那一节是连续文字,无法机械拆分,所以两种都保留,模板里已说明,测试要求每个模块只用一种。
 
-**仍未做:** `hellyeah-v2` 代码引用的 commit SHA(多数只有读取日期);`README.md`、`_workflow/*` 里对旧路径的叙述性提及。
+**仍未做:** `README.md`、`_workflow/*` 里对旧路径的叙述性提及。
+
+**SHA 决定(2026-11-06,用户):** `hellyeah-v2` 代码引用不再记录 commit SHA,只写仓库、路径和读取日期;`campaign-composer` 里唯一带 SHA 的一行已去掉。

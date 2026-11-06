@@ -29,7 +29,7 @@ related_modules: [hellyeah.campaign-agent, hellyeah.creative-studio, hellyeah.wa
 | COMPOSER-S04 | `sources/rulings/2026-10-13-pr1217-k1-switch-back.md` + `sources/rulings/2026-10-13-pr1217-k2-fullauto-metric.md` (PR-1217-K1、K2（QA-1149，staging，QA 负责人裁定；工作台 W-20261014-20、21）) | authority | confirmed 2026-10-13 |
 | COMPOSER-S05 | `sources/rulings/2026-10-14-composer-qa-1157.md` (QA 负责人 2026-10-14 裁定（工作台 W-20261014-13、51；对应人工提单 QA-1157）) | authority | confirmed 2026-10-14 |
 | COMPOSER-S06 | `sources/rulings/2026-10-15-composer-google-draft-tracker-rules.md` (QA 负责人 2026-10-15 口述并确认：Google 草稿类型（Search / PMax）× 目标 × tracker 三种状态（没装 / waiting / live）的规则（本会话；PR-1327 那一轮环境给错，相关两条 bug 作废）) | authority | confirmed 2026-10-15 |
-| COMPOSER-S07 | `hellyeah-v2` origin/staging `970cf08`：`packages/shared/src/constants/managed-ads.ts`（`CAMPAIGN_GOAL_CATEGORIES`、`requiresConversionTracker`、`resolveGoogleBiddingStrategy`）、`schemas/campaign-generation.ts`（campaignType） | observation | 2026-10-15 读取；只说明实现与枚举，不定义 Expected(原标注 code_observed) |
+| COMPOSER-S07 | `hellyeah-v2` origin/staging：`packages/shared/src/constants/managed-ads.ts`（`CAMPAIGN_GOAL_CATEGORIES`、`requiresConversionTracker`、`resolveGoogleBiddingStrategy`）、`schemas/campaign-generation.ts`（campaignType） | observation | 2026-10-15 读取；只说明实现与枚举，不定义 Expected(原标注 code_observed) |
 
 ## Page Signals
 
