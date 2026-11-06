@@ -14,7 +14,7 @@ const cases = [mk("C01", "Saving shows a banner"), mk("C02", "The banner disappe
 function setup(reviewerVerdicts: ((round: number) => string)) {
   const runDir = mkdtempSync(path.join(tmpdir(), "qa-loop-"));
   const w = (n: string, d: unknown) => writeFileSync(path.join(runDir, n), JSON.stringify(d));
-  w("acceptance.json", { atoms: [] }); w("sources.json", { sources: [SRC] }); w("cases.json", { cases });
+  w("acceptance.json", { atoms: [] }); w("sources.json", { sources: [SRC] }); w("cases.json", { cases }); w("cases.v1.json", { cases }); // as written by qa design
   const calls: string[] = [];
   let reviews = 0;
   const transport: LlmTransport = {
