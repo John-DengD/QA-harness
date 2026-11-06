@@ -1,5 +1,6 @@
 ---
 id: hellyeah.ad-account
+type: module
 product: hellyeah
 surfaces: [admin-dashboard, api, google-ads, meta]
 status: draft
@@ -24,11 +25,11 @@ Hellyeah 维护一个广告账户池，按组织分配账户供 campaign 投放�
 
 ## 来源
 
-| Ref | Source | Role | Applies to | Status |
-|---|---|---|---|---|
-| ACCT-SRC-001 | `hellyeah-v2` `packages/shared/src/constants/managed-ads.ts` | observation | 全部账户枚举 | current, read 2026-09-20 (staging) |
-| ACCT-SRC-002 | `sources/hellyeah/product-memory.md` | user-confirmed | 健康状态与池状态一致性规则 | current |
-| ACCT-SRC-003 | `sources/qa-knowledge/bug-patterns.md` — 2026-08-26 Account Pool 条目 | risk | PE-250 / PE-259 的历史 Bug 模式 | current |
+| Ref | Source | Role | Status |
+|---|---|---|---|
+| ACCT-S01 | `hellyeah-v2` `packages/shared/src/constants/managed-ads.ts` — 适用:全部账户枚举 | observation | current, read 2026-09-20 (staging) |
+| ACCT-S02 | `sources/hellyeah/product-memory.md` — 适用:健康状态与池状态一致性规则 | user-confirmed | current |
+| ACCT-S03 | `sources/qa-knowledge/bug-patterns.md` — 2026-08-26 Account Pool 条目 — 适用:PE-250 / PE-259 的历史 Bug 模式 | risk | current |
 
 > `business_file/` 无对应文档，账户枚举与流程事实来自代码，断言为 `draft`。
 

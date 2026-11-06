@@ -1,5 +1,6 @@
 ---
 id: hellyeah.settings-members
+type: module
 product: hellyeah
 surfaces: [customer-dashboard, clerk, api]
 status: pilot
@@ -8,7 +9,7 @@ last_reviewed: 2026-09-16
 related_modules: [hellyeah.auth-organization, hellyeah.notification-delivery]
 ---
 
-# Settings & Members
+# Settings & Members（设置与成员）
 
 ## 业务目标与边界
 
@@ -22,9 +23,9 @@ related_modules: [hellyeah.auth-organization, hellyeah.notification-delivery]
 
 | Ref | Source | Role | Status |
 |---|---|---|---|
-| SETTINGS-SRC-001 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
-| SETTINGS-SRC-002 | `sources/hellyeah/business_file/shared/authentication/user-identity.md` | observation | historical snapshot, synced 2026-08-05 |
-| SETTINGS-SRC-003 | `sources/hellyeah/product-memory.md` | user-confirmed/risk | includes Vendor email rule; separate surface check required |
+| SETTINGS-S01 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
+| SETTINGS-S02 | `sources/hellyeah/business_file/shared/authentication/user-identity.md` | observation | historical snapshot, synced 2026-08-05 |
+| SETTINGS-S03 | `sources/hellyeah/product-memory.md` | risk | includes Vendor email rule; separate surface check required(原标注 user-confirmed/risk) |
 
 ## Page Signals
 

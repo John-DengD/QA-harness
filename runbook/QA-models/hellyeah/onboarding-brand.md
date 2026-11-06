@@ -1,5 +1,6 @@
 ---
 id: hellyeah.onboarding-brand
+type: module
 product: hellyeah
 surfaces: [customer-dashboard, api, aima]
 status: pilot
@@ -8,7 +9,7 @@ last_reviewed: 2026-10-19
 related_modules: [hellyeah.auth-organization, hellyeah.campaign-agent, hellyeah.creative-studio]
 ---
 
-# Onboarding & Brand
+# Onboarding & Brand（引导与品牌）
 
 ## 业务目标与边界
 
@@ -22,11 +23,11 @@ related_modules: [hellyeah.auth-organization, hellyeah.campaign-agent, hellyeah.
 
 | Ref | Source | Role | Status |
 |---|---|---|---|
-| ONBOARD-SRC-001 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
-| ONBOARD-SRC-002 | `sources/hellyeah/business_file/aima/brand-research.md` | observation | historical snapshot, synced 2026-08-05 |
-| ONBOARD-SRC-003 | `sources/hellyeah/business_file/aima/brand-research/data-model.md` | observation | historical snapshot, synced 2026-08-05 |
-| ONBOARD-SRC-004 | `sources/hellyeah/user-dashboard/product-memory.md` | risk | current guidance |
-| ONBOARD-SRC-005 | `sources/hellyeah/version-history.md` | timeline | current timeline |
+| ONBOARD-S01 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
+| ONBOARD-S02 | `sources/hellyeah/business_file/aima/brand-research.md` | observation | historical snapshot, synced 2026-08-05 |
+| ONBOARD-S03 | `sources/hellyeah/business_file/aima/brand-research/data-model.md` | observation | historical snapshot, synced 2026-08-05 |
+| ONBOARD-S04 | `sources/hellyeah/user-dashboard/product-memory.md` | risk | current guidance |
+| ONBOARD-S05 | `sources/hellyeah/version-history.md` | timeline | current timeline |
 
 ## 状态模型
 

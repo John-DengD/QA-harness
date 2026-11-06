@@ -6,7 +6,7 @@ import { canSupportProductFail, loadRunbook, REQUIRED_FILES, RunbookError } from
 const REAL = path.resolve(__dirname, "../runbook");
 
 function fm(status: string, extra = "version: 1\nlast_reviewed: 2026-09-20\n") {
-  return `---\nid: hellyeah.x\nproduct: hellyeah\nstatus: ${status}\n${extra}---\n# X\n`;
+  return `---\nid: hellyeah.x\ntype: module\nproduct: hellyeah\nstatus: ${status}\n${extra}---\n# X\n`;
 }
 
 function makeRunbook(opts: { skip?: string; moduleStatus?: string; moduleFm?: string } = {}) {
@@ -18,7 +18,7 @@ function makeRunbook(opts: { skip?: string; moduleStatus?: string; moduleFm?: st
   }
   mkdirSync(path.join(root, "QA-models/hellyeah"), { recursive: true });
   writeFileSync(path.join(root, "QA-models/hellyeah/x.md"), opts.moduleFm ?? fm(opts.moduleStatus ?? "pilot"));
-  writeFileSync(path.join(root, "QA-models/hellyeah/index.md"), "# no frontmatter\n");
+  writeFileSync(path.join(root, "QA-models/hellyeah/index.md"), "---\nid: hellyeah.index\ntype: index\nproduct: hellyeah\n---\n# Index\n");
   return root;
 }
 
@@ -33,9 +33,20 @@ describe("loadRunbook", () => {
     expect(typeof rb.modules[0]!.lastReviewed).toBe("string");
   });
 
-  it("skips files without frontmatter (index.md)", () => {
+  it("skips non-module types (index.md has type: index)", () => {
     const rb = loadRunbook(makeRunbook());
     expect(rb.modules.map((m) => path.basename(m.path)).sort()).toEqual(["core-journeys.md", "x.md"]);
+  });
+
+  it("names the file when type is missing or unknown", () => {
+    expect(() => loadRunbook(makeRunbook({ moduleFm: "---\nid: hellyeah.x\nstatus: pilot\nversion: 1\nlast_reviewed: 2026-09-20\n---\n" }))).toThrow(/x\.md/);
+    expect(() => loadRunbook(makeRunbook({ moduleFm: fm("pilot").replace("type: module", "type: banana") }))).toThrow(/x\.md/);
+  });
+
+  it("names a markdown file under hellyeah/ that has no frontmatter at all", () => {
+    const root = makeRunbook();
+    writeFileSync(path.join(root, "QA-models/hellyeah/stray.md"), "# stray\n");
+    expect(() => loadRunbook(root)).toThrow(/stray\.md/);
   });
 
   it("canSupportProductFail is true only for active", () => {

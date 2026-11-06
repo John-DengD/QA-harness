@@ -1,15 +1,16 @@
 ---
 id: hellyeah.xray-gtm-conversion
+type: module
 product: hellyeah
 surfaces: [customer-dashboard, google-tag-manager, tracked-website, google-ads, postbacks]
 status: draft
 version: 1
 last_reviewed: 2026-09-20
-related_modules: [hellyeah.tracking-xray, hellyeah.campaign-launch, hellyeah.campaign-lifecycle]
+related_modules: [hellyeah.xray-tracking, hellyeah.campaign-launch, hellyeah.campaign-lifecycle]
 agent_testable: false
 ---
 
-# X-Ray GTM 安装与转化回传
+# X-Ray GTM Conversion（GTM 安装与转化回传）
 
 ## 业务目标与边界
 
@@ -17,7 +18,7 @@ agent_testable: false
 
 模块覆盖三段链路：GTM 容器连接与发布、`cv_*` 转化事件的产生方式、Google Ads conversion action 的自动创建与 postback 回传。
 
-不覆盖：X-Ray 事件采集与查询本身（见 [tracking-xray](tracking-xray.md)）、Meta/TikTok 等非 Google 渠道、SSOT 报表口径。
+不覆盖：X-Ray 事件采集与查询本身（见 [xray-tracking](xray-tracking.md)）、Meta/TikTok 等非 Google 渠道、SSOT 报表口径。
 
 **本模块默认不在 agent 自动化测试范围内**（见「测试可行性」）。它的首要用途是解释现象和排除误判，而不是作为 Browser 执行目标。
 
@@ -27,16 +28,16 @@ agent_testable: false
 
 ## 来源
 
-| Ref | Source | Role | Applies to | Status |
-|---|---|---|---|---|
-| GTMCV-SRC-001 | `hellyeah-v2` `apps/api/src/inngest/gtm/contract.ts`、`publish.ts` | observation | GTM 实体命名与发布流程 | current, read 2026-09-20 (staging) |
-| GTMCV-SRC-002 | `hellyeah-v2` `packages/shared/src/gtm`（`buildGtmCustomHtmlSnippet`） | observation | 注入的 tag 内容 | current, read 2026-09-20 (staging) |
-| GTMCV-SRC-003 | `hellyeah-v2` `apps/dashboard/src/features/tracker/gtm/connect-state.ts`、`apps/api/src/modules/integrations/gtm/model.ts` | observation | 连接状态与错误分类 | current, read 2026-09-20 (staging) |
-| GTMCV-SRC-004 | `hellyeah-v2` `packages/postbacks/src/google/resolver.ts` | observation | 13 个转化事件与 Google action 命名 | current, read 2026-09-20 (staging) |
-| GTMCV-SRC-005 | `hellyeah-v2` `packages/shared/src/constants/managed-ads.ts` | observation | campaign primary conversion event 与 goal 映射 | current, read 2026-09-20 (staging) |
-| GTMCV-SRC-006 | `sources/hellyeah/business_file/xray/event-model.md` | observation | 事件命名分层与推断引擎 | synced 2026-08-05；**无 GTM 内容** |
-| GTMCV-SRC-007 | `sources/hellyeah/business_file/xray/ssot-integration.md` | observation | postback 就绪条件与 click ID | synced 2026-08-05 |
-| GTMCV-SRC-008 | `sources/rulings/2026-09-gtm-slack-dev-confirmation.md` (研发口头确认（Slack，2026-09）) | user-confirmed | GTM 模板只加载 tracker；转化需另建 tag；conversion action 首次 postback 自动创建；campaign 必须从 Hellyeah 发起 | current；待补书面业务文档 |
+| Ref | Source | Role | Status |
+|---|---|---|---|
+| GTMCV-S01 | `hellyeah-v2` `apps/api/src/inngest/gtm/contract.ts`、`publish.ts` — 适用:GTM 实体命名与发布流程 | observation | current, read 2026-09-20 (staging) |
+| GTMCV-S02 | `hellyeah-v2` `packages/shared/src/gtm`（`buildGtmCustomHtmlSnippet`） — 适用:注入的 tag 内容 | observation | current, read 2026-09-20 (staging) |
+| GTMCV-S03 | `hellyeah-v2` `apps/dashboard/src/features/tracker/gtm/connect-state.ts`、`apps/api/src/modules/integrations/gtm/model.ts` — 适用:连接状态与错误分类 | observation | current, read 2026-09-20 (staging) |
+| GTMCV-S04 | `hellyeah-v2` `packages/postbacks/src/google/resolver.ts` — 适用:13 个转化事件与 Google action 命名 | observation | current, read 2026-09-20 (staging) |
+| GTMCV-S05 | `hellyeah-v2` `packages/shared/src/constants/managed-ads.ts` — 适用:campaign primary conversion event 与 goal 映射 | observation | current, read 2026-09-20 (staging) |
+| GTMCV-S06 | `sources/hellyeah/business_file/xray/event-model.md` — 适用:事件命名分层与推断引擎 | observation | synced 2026-08-05；**无 GTM 内容** |
+| GTMCV-S07 | `sources/hellyeah/business_file/xray/ssot-integration.md` — 适用:postback 就绪条件与 click ID | observation | synced 2026-08-05 |
+| GTMCV-S08 | `sources/rulings/2026-09-gtm-slack-dev-confirmation.md` (研发口头确认（Slack，2026-09）) — 适用:GTM 模板只加载 tracker；转化需另建 tag；conversion action 首次 postback 自动创建；campaign 必须从 Hellyeah 发起 | user-confirmed | current；待补书面业务文档 |
 
 > `business_file/` 中目前完全没有 GTM 相关文档，本模块的 GTM 事实主要来自代码与研发确认。产品侧补齐正式文档后需要回查并升级 Status。
 

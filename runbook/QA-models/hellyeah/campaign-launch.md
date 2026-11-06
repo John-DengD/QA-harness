@@ -1,5 +1,6 @@
 ---
 id: hellyeah.campaign-launch
+type: module
 product: hellyeah
 surfaces: [customer-dashboard, admin-dashboard, api, google-ads, meta]
 status: pilot
@@ -8,7 +9,7 @@ last_reviewed: 2026-10-20
 related_modules: [hellyeah.auth-organization, hellyeah.wallet-payment]
 ---
 
-# Campaign Launch
+# Campaign Launch（Campaign 投放）
 
 ## 业务目标与边界
 
@@ -20,14 +21,14 @@ related_modules: [hellyeah.auth-organization, hellyeah.wallet-payment]
 
 ## 来源
 
-| Ref | Source | Role | Applies to | Status |
-|---|---|---|---|---|
-| LAUNCH-SRC-001 | `sources/hellyeah/business_file/managed-ads/campaign-lifecycle.md` | observation | Campaign states/transitions | historical snapshot, synced 2026-08-05 |
-| LAUNCH-SRC-002 | `sources/hellyeah/business_file/managed-ads/launch-flow.md` | observation | Preflight and platform creation | historical snapshot, synced 2026-08-05 |
-| LAUNCH-SRC-003 | `sources/hellyeah/business_file/shared/payments/spend-gating.md` | observation | Spend and debit gates | historical snapshot, synced 2026-08-05 |
-| LAUNCH-SRC-004 | `sources/hellyeah/product-memory.md` | risk | Campaign judgment and exclusions | current guidance |
-| LAUNCH-SRC-005 | `sources/qa-knowledge/domains/campaign.md` | risk | Historical campaign risks | contains rules requiring source recheck |
-| LAUNCH-SRC-006 | `sources/qa-knowledge/domains/admin-review.md` | risk | Review gate risks | current guidance |
+| Ref | Source | Role | Status |
+|---|---|---|---|
+| LAUNCH-S01 | `sources/hellyeah/business_file/managed-ads/campaign-lifecycle.md` — 适用:Campaign states/transitions | observation | historical snapshot, synced 2026-08-05 |
+| LAUNCH-S02 | `sources/hellyeah/business_file/managed-ads/launch-flow.md` — 适用:Preflight and platform creation | observation | historical snapshot, synced 2026-08-05 |
+| LAUNCH-S03 | `sources/hellyeah/business_file/shared/payments/spend-gating.md` — 适用:Spend and debit gates | observation | historical snapshot, synced 2026-08-05 |
+| LAUNCH-S04 | `sources/hellyeah/product-memory.md` — 适用:Campaign judgment and exclusions | risk | current guidance |
+| LAUNCH-S05 | `sources/qa-knowledge/domains/campaign.md` — 适用:Historical campaign risks | risk | contains rules requiring source recheck |
+| LAUNCH-S06 | `sources/qa-knowledge/domains/admin-review.md` — 适用:Review gate risks | risk | current guidance |
 
 ## 状态模型
 

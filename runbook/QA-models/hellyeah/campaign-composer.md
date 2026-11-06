@@ -1,5 +1,6 @@
 ---
 id: hellyeah.campaign-composer
+type: module
 product: hellyeah
 surfaces: [customer-dashboard, api]
 status: pilot
@@ -8,7 +9,7 @@ last_reviewed: 2026-09-16
 related_modules: [hellyeah.campaign-agent, hellyeah.creative-studio, hellyeah.wallet-payment, hellyeah.campaign-launch]
 ---
 
-# Campaign Composer
+# Campaign Composer（Campaign 编辑器）
 
 ## 业务目标与边界
 
@@ -22,13 +23,13 @@ related_modules: [hellyeah.campaign-agent, hellyeah.creative-studio, hellyeah.wa
 
 | Ref | Source | Role | Status |
 |---|---|---|---|
-| COMPOSER-SRC-001 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
-| COMPOSER-SRC-002 | `sources/hellyeah/business_file/managed-ads/launch-flow.md` | observation | historical snapshot, synced 2026-08-05 |
-| COMPOSER-SRC-003 | `sources/hellyeah/product-memory.md` | risk | current guidance |
-| COMPOSER-SRC-004 | `sources/rulings/2026-10-13-pr1217-k1-switch-back.md` + `sources/rulings/2026-10-13-pr1217-k2-fullauto-metric.md` (PR-1217-K1、K2（QA-1149，staging，QA 负责人裁定；工作台 W-20261014-20、21）) | authority | confirmed 2026-10-13 |
-| COMPOSER-SRC-005 | `sources/rulings/2026-10-14-composer-qa-1157.md` (QA 负责人 2026-10-14 裁定（工作台 W-20261014-13、51；对应人工提单 QA-1157）) | authority | confirmed 2026-10-14 |
-| COMPOSER-SRC-006 | `sources/rulings/2026-10-15-composer-google-draft-tracker-rules.md` (QA 负责人 2026-10-15 口述并确认：Google 草稿类型（Search / PMax）× 目标 × tracker 三种状态（没装 / waiting / live）的规则（本会话；PR-1327 那一轮环境给错，相关两条 bug 作废）) | authority | confirmed 2026-10-15 |
-| COMPOSER-SRC-007 | `hellyeah-v2` origin/staging `970cf08`：`packages/shared/src/constants/managed-ads.ts`（`CAMPAIGN_GOAL_CATEGORIES`、`requiresConversionTracker`、`resolveGoogleBiddingStrategy`）、`schemas/campaign-generation.ts`（campaignType） | code_observed | 2026-10-15 读取；只说明实现与枚举，不定义 Expected |
+| COMPOSER-S01 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
+| COMPOSER-S02 | `sources/hellyeah/business_file/managed-ads/launch-flow.md` | observation | historical snapshot, synced 2026-08-05 |
+| COMPOSER-S03 | `sources/hellyeah/product-memory.md` | risk | current guidance |
+| COMPOSER-S04 | `sources/rulings/2026-10-13-pr1217-k1-switch-back.md` + `sources/rulings/2026-10-13-pr1217-k2-fullauto-metric.md` (PR-1217-K1、K2（QA-1149，staging，QA 负责人裁定；工作台 W-20261014-20、21）) | authority | confirmed 2026-10-13 |
+| COMPOSER-S05 | `sources/rulings/2026-10-14-composer-qa-1157.md` (QA 负责人 2026-10-14 裁定（工作台 W-20261014-13、51；对应人工提单 QA-1157）) | authority | confirmed 2026-10-14 |
+| COMPOSER-S06 | `sources/rulings/2026-10-15-composer-google-draft-tracker-rules.md` (QA 负责人 2026-10-15 口述并确认：Google 草稿类型（Search / PMax）× 目标 × tracker 三种状态（没装 / waiting / live）的规则（本会话；PR-1327 那一轮环境给错，相关两条 bug 作废）) | authority | confirmed 2026-10-15 |
+| COMPOSER-S07 | `hellyeah-v2` origin/staging `970cf08`：`packages/shared/src/constants/managed-ads.ts`（`CAMPAIGN_GOAL_CATEGORIES`、`requiresConversionTracker`、`resolveGoogleBiddingStrategy`）、`schemas/campaign-generation.ts`（campaignType） | observation | 2026-10-15 读取；只说明实现与枚举，不定义 Expected(原标注 code_observed) |
 
 ## Page Signals
 
@@ -78,9 +79,9 @@ related_modules: [hellyeah.campaign-agent, hellyeah.creative-studio, hellyeah.wa
 | COMPOSER-013 | negative | 没装 tracker（或已装但还没收到首次访问）的组织，草稿是 **PMax** 且目标为 Sales / Signups | 不允许 launch：Launch Readiness 显示 Conversion tracking 阻塞，服务端 launch 也拒绝；页面提供切换按钮；出路只有两条：装好 tracker，或切换成 Search（Traffic，见 COMPOSER-011） | READINESS + launch 响应 + UI 截图 | tracker 已收到首次访问 |
 | COMPOSER-014 | negative | tracker 为 live（已收到访问）的组织，Sales / Signups 草稿（Search 或 PMax） | 保持 Sales / Signups；Launch Readiness 不因 conversion tracking 拦 launch；**没有**切换按钮；tracking 卡片只显示一行 "tracker live on …"，不声称已回报购买 / 注册 | DRAFT + READINESS + UI 截图 | tracker 实际未收到访问（那时属于 waiting） |
 
-**断言的可用范围**：`COMPOSER-011`、`COMPOSER-012`、`COMPOSER-013`、`COMPOSER-014` 来自 COMPOSER-SRC-006（QA 负责人 2026-10-15），可以单独支撑 ProductFail（COMPOSER-011 由 2026-10-14 的「PMax 不得改写为 Search」改为现行规则）。`COMPOSER-010` 来自 COMPOSER-SRC-004（2026-10-13 裁定）；2026-10-15 曾扩展到 Signups 草稿，因依据的 PR-1327 测试环境给错已撤回，**在当前 staging 上按 PMax 切换路径重新验证前，只能作为风险提示，不能单独支撑 ProductFail**。其余断言仍受模块 `status: pilot` 限制，失败时需要 ticket、用户确认或其它当前有效证据才能判 ProductFail。
+**断言的可用范围**：`COMPOSER-011`、`COMPOSER-012`、`COMPOSER-013`、`COMPOSER-014` 来自 COMPOSER-S06（QA 负责人 2026-10-15），可以单独支撑 ProductFail（COMPOSER-011 由 2026-10-14 的「PMax 不得改写为 Search」改为现行规则）。`COMPOSER-010` 来自 COMPOSER-S04（2026-10-13 裁定）；2026-10-15 曾扩展到 Signups 草稿，因依据的 PR-1327 测试环境给错已撤回，**在当前 staging 上按 PMax 切换路径重新验证前，只能作为风险提示，不能单独支撑 ProductFail**。其余断言仍受模块 `status: pilot` 限制，失败时需要 ticket、用户确认或其它当前有效证据才能判 ProductFail。
 
-**Google 草稿的类型与目标（COMPOSER-SRC-007，实现事实）**
+**Google 草稿的类型与目标（COMPOSER-S07，实现事实）**
 
 - campaign type：`search`、`pmax`。`display` 只用于读取旧数据，新建不可用。
 - goal：`traffic`、`signups`、`sales`、`leads`（只有这 4 个）。
@@ -98,14 +99,14 @@ related_modules: [hellyeah.campaign-agent, hellyeah.creative-studio, hellyeah.wa
 | waiting | 同「没装」：生成即为 Traffic；不拦 launch；**没有**切换按钮（COMPOSER-012） | 拦 launch；卡片提示打开一次网站唤醒 tracker，同时有 "Draft as Traffic" 按钮（COMPOSER-013）；提示文案不应让用户再去安装 |
 | live | 保持 Sales / Signups；不拦 launch；**没有**切换按钮；卡片只有一行 "tracker live on …"（COMPOSER-014） | 保持 Sales / Signups；不拦 launch；**没有**切换按钮（COMPOSER-014） |
 
-Leads 只提示不拦，Traffic 不出现门禁（COMPOSER-SRC-007 代码事实；作为预期使用前需确认）。
+Leads 只提示不拦，Traffic 不出现门禁（COMPOSER-S07 代码事实；作为预期使用前需确认）。
 
 ## 副作用、Bug 判断与回流
 
 普通编辑可恢复；Top-up/Launch 交给对应模块。高置信 Bug 包括 UI/artifact 不一致、编辑后旧 readiness 仍允许 Launch、gap 计算错误、PMax 提交 keyword、选中 set 与 preview/launch payload 不一致。视觉排列差异无明确合同只记 UX。
 
-**不能直接判 Bug**（COMPOSER-SRC-004）：
+**不能直接判 Bug**（COMPOSER-S04）：
 
 - Switch to Traffic 时 Full-Auto 目标指标沿用原数值并换成新口径（例如 "Cost per purchase around $40.00" 变为 "Cost per click around $40.00"），确认弹窗也不列出这一项——**不是 Bug**。Full-Auto 给内部投手使用，数值由投手调整，自动生成的只是参考。
-- 同一组织有多个未发布草稿时，Campaigns 首页只展示最新一个——**是设计，不是 Bug**（COMPOSER-SRC-005）。测试要进入较早的草稿时，用只读查询拿到 draft ID 后直接打开，并在报告里写明入口方式。
+- 同一组织有多个未发布草稿时，Campaigns 首页只展示最新一个——**是设计，不是 Bug**（COMPOSER-S05）。测试要进入较早的草稿时，用只读查询拿到 draft ID 后直接打开，并在报告里写明入口方式。
 待真实 ticket 确认响应式页面锚点和 debounce 等待预算。

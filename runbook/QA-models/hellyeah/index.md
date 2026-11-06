@@ -1,4 +1,10 @@
-# Hellyeah QA Model Index
+---
+id: hellyeah.index
+type: index
+product: hellyeah
+---
+
+# Hellyeah QA Model Index（Hellyeah QA 模块索引）
 
 当前模块处于 `pilot` 阶段。Linear ticket 先选择 primary module，再加载必要的 adjacent modules。
 
@@ -15,8 +21,8 @@ Customer Dashboard 工单先读取 [Dashboard Ticket Routing](dashboard-routing.
 | [creative-studio](creative-studio.md) | Studio、Creative Set、reference、generation、landscape/square、partial、picker | onboarding-brand、campaign-composer |
 | [admin-review](admin-review.md) | Admin/ops review、approve/reject、review queue、rejection reason | campaign-launch、creative-studio、wallet-payment |
 | [campaign-lifecycle](campaign-lifecycle.md) | pause/resume/cancel/completed/failed、allowedActions、refund settlement | campaign-launch、admin-review、wallet-payment |
-| [tracking-xray](tracking-xray.md) | X-Ray、tracker、event、conversion、pixel、postback、attribution、funnel | auth-organization、campaign-lifecycle |
-| [xray-gtm-conversion](xray-gtm-conversion.md) *(draft, 非 agent 执行目标)* | GTM、Tag Manager、container、publish tag、conversion action、`cv_*` 白名单、Google postback | tracking-xray、campaign-launch、campaign-lifecycle |
+| [xray-tracking](xray-tracking.md) | X-Ray、tracker、event、conversion、pixel、postback、attribution、funnel | auth-organization、campaign-lifecycle |
+| [xray-gtm-conversion](xray-gtm-conversion.md) *(draft, 非 agent 执行目标)* | GTM、Tag Manager、container、publish tag、conversion action、`cv_*` 白名单、Google postback | xray-tracking、campaign-launch、campaign-lifecycle |
 | [settings-members](settings-members.md) | settings、member、invite、role、organization、Clerk membership | auth-organization、notification-delivery |
 | [notification-delivery](notification-delivery.md) | notification、email preference、delivery、skipped、suppression、Resend | settings-members、campaign-lifecycle |
 | [campaign-optimization](campaign-optimization.md) *(draft)* | optimization、full auto、budget update、auto pause、authorization envelope、quiet hours、risk class、optimization review | campaign-lifecycle、wallet-payment、admin-review、notification-delivery |

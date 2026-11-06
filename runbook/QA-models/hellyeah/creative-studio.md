@@ -1,5 +1,6 @@
 ---
 id: hellyeah.creative-studio
+type: module
 product: hellyeah
 surfaces: [customer-dashboard, studio, api]
 status: pilot
@@ -8,7 +9,7 @@ last_reviewed: 2026-09-16
 related_modules: [hellyeah.onboarding-brand, hellyeah.campaign-agent, hellyeah.campaign-composer]
 ---
 
-# Creative Studio
+# Creative Studio（素材工作室）
 
 ## 业务目标与边界
 
@@ -22,11 +23,11 @@ related_modules: [hellyeah.onboarding-brand, hellyeah.campaign-agent, hellyeah.c
 
 | Ref | Source | Role | Status |
 |---|---|---|---|
-| CREATIVE-SRC-001 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
-| CREATIVE-SRC-002 | `sources/hellyeah/business_file/creative-engine.md` | observation | historical snapshot, synced 2026-08-05 |
-| CREATIVE-SRC-003 | `sources/hellyeah/business_file/creative-engine/platform-specs.md` | observation | historical snapshot, synced 2026-08-05 |
-| CREATIVE-SRC-004 | `sources/hellyeah/product-memory.md` | risk/user-confirmed rules | current guidance |
-| CREATIVE-SRC-005 | `sources/qa-knowledge/testing-heuristics.md` | risk | current guidance |
+| CREATIVE-S01 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
+| CREATIVE-S02 | `sources/hellyeah/business_file/creative-engine.md` | observation | historical snapshot, synced 2026-08-05 |
+| CREATIVE-S03 | `sources/hellyeah/business_file/creative-engine/platform-specs.md` | observation | historical snapshot, synced 2026-08-05 |
+| CREATIVE-S04 | `sources/hellyeah/product-memory.md` | risk | current guidance(原标注 risk/user-confirmed rules) |
+| CREATIVE-S05 | `sources/qa-knowledge/testing-heuristics.md` | risk | current guidance |
 
 ## Page Signals
 

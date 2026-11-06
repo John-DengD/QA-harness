@@ -1,5 +1,6 @@
 ---
-id: hellyeah.tracking-xray
+id: hellyeah.xray-tracking
+type: module
 product: hellyeah
 surfaces: [customer-dashboard, xray, tracked-website, api, postbacks]
 status: pilot
@@ -8,7 +9,7 @@ last_reviewed: 2026-09-16
 related_modules: [hellyeah.auth-organization, hellyeah.campaign-lifecycle]
 ---
 
-# Tracking & X-Ray
+# X-Ray Tracking（追踪与事件）
 
 ## 业务目标与边界
 
@@ -22,12 +23,12 @@ related_modules: [hellyeah.auth-organization, hellyeah.campaign-lifecycle]
 
 | Ref | Source | Role | Status |
 |---|---|---|---|
-| XRAY-SRC-001 | `sources/hellyeah/business_file/xray.md` | observation | historical snapshot, synced 2026-08-05 |
-| XRAY-SRC-002 | `sources/hellyeah/business_file/xray/event-model.md` | observation | historical snapshot, synced 2026-08-05 |
-| XRAY-SRC-003 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
-| XRAY-SRC-004 | `sources/hellyeah/business_file/xray/ssot-integration.md` | observation | historical snapshot, synced 2026-08-05 |
-| XRAY-SRC-005 | `sources/qa-knowledge/domains/webhook-event.md` | risk | current guidance |
-| XRAY-SRC-006 | `sources/rulings/2026-10-13-pr1217-k3-multi-org-tracker.md` (PR-1217-K3（QA-1149，staging，QA 负责人裁定；工作台 W-20261014-22）) | authority | confirmed 2026-10-13 |
+| XRAY-S01 | `sources/hellyeah/business_file/xray.md` | observation | historical snapshot, synced 2026-08-05 |
+| XRAY-S02 | `sources/hellyeah/business_file/xray/event-model.md` | observation | historical snapshot, synced 2026-08-05 |
+| XRAY-S03 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
+| XRAY-S04 | `sources/hellyeah/business_file/xray/ssot-integration.md` | observation | historical snapshot, synced 2026-08-05 |
+| XRAY-S05 | `sources/qa-knowledge/domains/webhook-event.md` | risk | current guidance |
+| XRAY-S06 | `sources/rulings/2026-10-13-pr1217-k3-multi-org-tracker.md` (PR-1217-K3（QA-1149，staging，QA 负责人裁定；工作台 W-20261014-22）) | authority | confirmed 2026-10-13 |
 
 ## Page Signals
 
@@ -74,7 +75,7 @@ related_modules: [hellyeah.auth-organization, hellyeah.campaign-lifecycle]
 | XRAY-010 | visible | 无数据/错误 | UI 区分无事件、过滤为空、配置错误和服务失败 | UI + query facts | 合法新 website 无事件 |
 | XRAY-011 | negative | campaign goal 在 Sales ↔ Traffic 之间切换 | tracker 安装状态（未安装 / waiting / live）不随 goal 改变；未安装 tracker 的组织显示未安装，不显示为 live；Traffic goal 不因 tracking 未就绪阻塞 launch | 切换前后的 tracker 状态与 readiness 行 + 本 Case 视频 | 测试期间 tracker 真实收到首次访问，由 waiting 变为 live |
 
-**断言的可用范围**：`XRAY-011` 来自 XRAY-SRC-006（QA 负责人 2026-10-13 裁定），**可以单独支撑 ProductFail**。其余断言仍受模块状态限制。
+**断言的可用范围**：`XRAY-011` 来自 XRAY-S06（QA 负责人 2026-10-13 裁定），**可以单独支撑 ProductFail**。其余断言仍受模块状态限制。
 
 ## 副作用、Bug 判断与回流
 

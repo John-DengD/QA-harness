@@ -30,6 +30,8 @@ export type ModuleMeta = {
 
 export type Runbook = { root: string; modules: ModuleMeta[]; text(relPath: string): string };
 
+const DOC_TYPES = ["module", "index", "routing"] as const;
+
 const frontmatter = z.object({
   id: z.string().min(1),
   status: z.enum(["pilot", "draft", "active"]),
@@ -63,7 +65,16 @@ export function loadRunbook(dir: string): Runbook {
       problems.push(`unreadable frontmatter in ${rel}: ${(e as Error).message.split("\n")[0]}`);
       continue;
     }
-    if (Object.keys(data).length === 0) continue; // index.md, dashboard-routing.md: not modules
+    if (Object.keys(data).length === 0) {
+      problems.push(`missing frontmatter in ${rel}`);
+      continue;
+    }
+    const type = z.enum(DOC_TYPES).safeParse(data.type);
+    if (!type.success) {
+      problems.push(`invalid frontmatter in ${rel}: type must be one of ${DOC_TYPES.join("|")}`);
+      continue;
+    }
+    if (type.data !== "module") continue; // index, routing: not modules
     const parsed = frontmatter.safeParse(data);
     if (!parsed.success) {
       const why = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");

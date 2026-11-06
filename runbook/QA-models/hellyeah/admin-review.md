@@ -1,5 +1,6 @@
 ---
 id: hellyeah.admin-review
+type: module
 product: hellyeah
 surfaces: [admin-dashboard, customer-dashboard, api]
 status: pilot
@@ -8,7 +9,7 @@ last_reviewed: 2026-09-16
 related_modules: [hellyeah.campaign-launch, hellyeah.creative-studio, hellyeah.wallet-payment]
 ---
 
-# Admin Review
+# Admin Review（管理员审核）
 
 ## 业务目标与边界
 
@@ -22,10 +23,10 @@ Ops/Admin 对 pending campaign 的广告质量、安规、账户与投放条件�
 
 | Ref | Source | Role | Status |
 |---|---|---|---|
-| REVIEW-SRC-001 | `sources/hellyeah/business_file/admin-dashboard/campaigns.md` | observation | historical snapshot, synced 2026-08-05 |
-| REVIEW-SRC-002 | `sources/hellyeah/business_file/managed-ads/campaign-lifecycle.md` | observation | historical snapshot, synced 2026-08-05 |
-| REVIEW-SRC-003 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
-| REVIEW-SRC-004 | `sources/qa-knowledge/domains/admin-review.md` | risk | current guidance |
+| REVIEW-S01 | `sources/hellyeah/business_file/admin-dashboard/campaigns.md` | observation | historical snapshot, synced 2026-08-05 |
+| REVIEW-S02 | `sources/hellyeah/business_file/managed-ads/campaign-lifecycle.md` | observation | historical snapshot, synced 2026-08-05 |
+| REVIEW-S03 | `sources/hellyeah/business_file/customer-dashboard.md` | observation | historical snapshot, synced 2026-08-05 |
+| REVIEW-S04 | `sources/qa-knowledge/domains/admin-review.md` | risk | current guidance |
 
 ## Page Signals
 

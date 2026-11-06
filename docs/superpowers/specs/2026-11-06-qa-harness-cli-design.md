@@ -179,7 +179,7 @@
 - `QA-Knowledge/` 中 `testing-heuristics.md`、`test-design-cases.md`、`bug-patterns.md` 是否迁移(见上)。
 - QA module 的统一命名与外部依赖文档的收拢(见第 11 节)。
 
-## 11. QA module 命名统一与外部依赖收拢(待用户确认)
+## 11. QA module 命名统一与外部依赖收拢(已执行)
 
 2026-11-06 只读审计(对象:安装副本 `QA-models/hellyeah/` 的 17 个文件)的结果:
 
@@ -247,3 +247,15 @@
 1. `report` 完全不用 LLM。如果想要自然语言摘要,可以加,但摘要不得改变结论或数字。
 2. `design` 里的去重与排序由 LLM 做,代码只强制数量上限和 G1 全纳入,不自己判断哪条该删。
 3. `extract` 中 anchor 核对失败的原子直接不落盘并记录原因,而不是让整条命令失败。理由是单个原子的 anchor 写错不应让整张 ticket 无法测试;代价是可能少抽一条验收,所以落盘的原因清单要在报告里列出。
+
+### 11.2 命名统一:已执行(2026-11-06,用户授权"命名你自己来")
+
+对照表见 `runbook/QA-models/_workflow/naming-migration-2026-11-06.md`。做了:
+- 出处编号统一为 `<模块前缀>-S<两位序号>`(76 处),出处表列固定为 Ref、Source、Role、Status;原 Applies to 并入 Source;Role 限定五种(`code_observed`、`risk/user-confirmed rules`、`user-confirmed/risk` 取保守的一种并在 Status 保留原标注)。
+- `tracking-xray` 改名 `xray-tracking`,与 `xray-gtm-conversion` 前缀一致。
+- 所有 `hellyeah/` 下文件都有 frontmatter 和 `type`(module、index、routing);`core-journeys` 补了 `surfaces` 和 `related_modules`(由 J1 到 J5 的内容推出,待人确认);标题统一为"English name（中文名）"(中文名由我拟定)。
+- Runbook 加载器现在要求每个文件有合法 `type`,没有 frontmatter 也会报错并指出文件。`tests/runbook-conventions.test.ts` 把这些约定变成测试。
+
+**更正第 11 节的审计:** "Browser 观察点"与"Page Signals"在模板里是两个独立章节,不是同一类内容的两种叫法,因此没有改。"副作用、Bug 判断与回流"(精简模块)与"副作用与恢复"加"Bug 判断知识"(完整模块)是两种写法,精简模块的那一节是连续文字,无法机械拆分,所以两种都保留,模板里已说明,测试要求每个模块只用一种。
+
+**仍未做:** `hellyeah-v2` 代码引用的 commit SHA(多数只有读取日期);`README.md`、`_workflow/*` 里对旧路径的叙述性提及。

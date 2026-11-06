@@ -1,5 +1,6 @@
 ---
 id: hellyeah.campaign-optimization
+type: module
 product: hellyeah
 surfaces: [customer-dashboard, admin-dashboard, api, ad-platform]
 status: draft
@@ -26,13 +27,13 @@ related_modules: [hellyeah.campaign-lifecycle, hellyeah.wallet-payment, hellyeah
 
 ## 来源
 
-| Ref | Source | Role | Applies to | Status |
-|---|---|---|---|---|
-| OPT-SRC-001 | `hellyeah-v2` `packages/shared/src/constants/optimization.ts` | observation | 全部枚举与限额常量 | current, read 2026-09-20 (staging) |
-| OPT-SRC-002 | `hellyeah-v2` `packages/shared/src/schemas/optimization.ts` | observation | authorization envelope / limits / quietHours | current, read 2026-09-20 |
-| OPT-SRC-003 | `hellyeah-v2` `apps/api/src/inngest/functions/*optimization*` | observation | run / action / enrollment 的后台流程 | current, read 2026-09-20 |
-| OPT-SRC-004 | `hellyeah-v2` `apps/admin/src/features/optimization-review/` | observation | Admin 复核界面 | current, read 2026-09-20 |
-| OPT-SRC-005 | `hellyeah-v2` `apps/dashboard/src/features/campaigns/optimization.tsx` | observation | 客户侧展示 | current, read 2026-09-20 |
+| Ref | Source | Role | Status |
+|---|---|---|---|
+| OPT-S01 | `hellyeah-v2` `packages/shared/src/constants/optimization.ts` — 适用:全部枚举与限额常量 | observation | current, read 2026-09-20 (staging) |
+| OPT-S02 | `hellyeah-v2` `packages/shared/src/schemas/optimization.ts` — 适用:authorization envelope / limits / quietHours | observation | current, read 2026-09-20 |
+| OPT-S03 | `hellyeah-v2` `apps/api/src/inngest/functions/*optimization*` — 适用:run / action / enrollment 的后台流程 | observation | current, read 2026-09-20 |
+| OPT-S04 | `hellyeah-v2` `apps/admin/src/features/optimization-review/` — 适用:Admin 复核界面 | observation | current, read 2026-09-20 |
+| OPT-S05 | `hellyeah-v2` `apps/dashboard/src/features/campaigns/optimization.tsx` — 适用:客户侧展示 | observation | current, read 2026-09-20 |
 
 > **`business_file/` 中没有任何自动优化文档**，本模块全部事实来自代码。按知识来源规则，代码只能说明「是怎么实现的」，**不能定义「应该是什么样」**——因此本模块所有断言均为 `draft`，**不可单独作为判 Product bug 的依据**，需要 QA 单或产品确认。
 
