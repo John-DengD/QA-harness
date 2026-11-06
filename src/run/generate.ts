@@ -11,7 +11,7 @@ const clip = (s: string, n: number) => (s.length > n ? s.slice(0, n) + "…" : s
 const SYSTEM = [
   "You write ONE Playwright test (TypeScript) that checks a single test case against the live page described by the DOM snapshot.",
   "Rules:",
-  "- Import `test` and `expect` from `@playwright/test`, or from the project fixtures the existing specs use (`../../src/fixtures`) when you need the CDP-connected browser. Use one `test(...)`.",
+  "- Start with `import { test, expect } from \"./fixtures\";` (it connects to the browser inside the sandbox; never import from `@playwright/test` directly). Use one `test(...)` and the `page` fixture.",
   "- Use role/text/label locators taken from the DOM snapshot; never invent selectors that are not in it. No hard-coded waits longer than needed; prefer web-first assertions.",
   "- The assertions must check the case's Expected text. Do not weaken them to make the test pass.",
   "- Navigate from the given base URL. Never put credentials in the code; read them from `process.env` if the case needs a login.",

@@ -5,7 +5,12 @@ export type FetchLike = (
   init: { method: string; headers: Record<string, string>; body: string },
 ) => Promise<{ ok: boolean; status: number; json(): Promise<any> }>;
 
-export type ExecLike = (cmd: string, args: string[]) => Promise<{ code: number; stdout: string; stderr: string }>;
+export type ExecOptions = { cwd?: string; env?: NodeJS.ProcessEnv; timeoutMs?: number };
+export type ExecLike = (
+  cmd: string,
+  args: string[],
+  opts?: ExecOptions,
+) => Promise<{ code: number; stdout: string; stderr: string; timedOut?: boolean }>;
 
 export type PrInfo = {
   url: string;

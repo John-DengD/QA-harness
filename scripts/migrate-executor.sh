@@ -35,6 +35,13 @@ for(const k of Object.keys(j.scripts)) if(drop.test(k)) delete j.scripts[k];
 j.name="qa-harness-executor";
 fs.writeFileSync(p,JSON.stringify(j,null,2)+"\n");' "$DST/package.json"
 
+# Harness-owned scripts that live next to the executor scripts (sandbox create / record / snapshot / kill).
+cp "$(cd "$(dirname "$0")" && pwd)/executor-extra/qa-sandbox.ts" "$DST/scripts/qa-sandbox.ts"
+node -e '
+const fs=require("fs"),p=process.argv[1];const j=JSON.parse(fs.readFileSync(p,"utf8"));
+j.scripts["qa:sandbox"]="tsx scripts/qa-sandbox.ts";
+fs.writeFileSync(p,JSON.stringify(j,null,2)+"\n");' "$DST/package.json"
+
 # playwright.config.ts needs one small helper from the report app (which is not migrated): keep the helper, repoint the import.
 cp "$SRC/hy_ui_autotest/apps/report/src/runtime-metadata.ts" "$DST/src/report/runtime-metadata.ts"
 sed -i.bak 's#./apps/report/src/runtime-metadata#./src/report/runtime-metadata#' "$DST/playwright.config.ts" && rm "$DST/playwright.config.ts.bak"

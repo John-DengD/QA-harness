@@ -25,7 +25,8 @@
     "test:list": "playwright test --list",
     "test:unit": "vitest run tests/unit",
     "typecheck": "tsc --noEmit",
-    "spec:assert-lock": "tsx scripts/spec-assert-lock.ts"
+    "spec:assert-lock": "tsx scripts/spec-assert-lock.ts",
+    "qa:sandbox": "tsx scripts/qa-sandbox.ts"
   },
   "devDependencies": {
     "@babel/parser": "7.28.4",

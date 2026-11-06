@@ -43,5 +43,6 @@ describe("generateScript", () => {
     expect(seen[0]!.user).toContain("https://app.example.test");
     expect(seen[0]!.user.length).toBeLessThan(70000);
     expect(seen[0]!.system).toMatch(/sideEffects/);
+    expect(seen[0]!.system).toContain("./fixtures");
   });
 });

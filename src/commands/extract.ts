@@ -1,4 +1,4 @@
-import { execFile } from "node:child_process";
+import { realExec } from "../exec";
 import { ConfigError, requireSecrets } from "../config";
 import { resolvePrEnv, selectCandidates, stagingEnv } from "../env-resolve";
 import { loadEnvironments } from "../environments";
@@ -99,13 +99,6 @@ export async function runExtract(ctx: CommandContext, deps: ExtractDeps): Promis
     return code;
   }
 }
-
-const realExec: ExecLike = (cmd, args) =>
-  new Promise((resolve) => {
-    execFile(cmd, args, { maxBuffer: 20 * 1024 * 1024 }, (err, stdout, stderr) =>
-      resolve({ code: err ? ((err as { code?: number }).code ?? 1) : 0, stdout: String(stdout), stderr: String(stderr) }),
-    );
-  });
 
 export const extractStage: Stage = {
   name: "extract",
